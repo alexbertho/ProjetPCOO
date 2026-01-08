@@ -56,7 +56,7 @@ configure(subprojects) {
 
 subprojects {
   version = "$projectVersion"
-  ext.appName = 'Apocalypse-Tower'
+  ext.appName = 'AniviasRealm3'
   repositories {
     mavenCentral()
 //    maven { url 'https://s01.oss.sonatype.org' }
@@ -69,4 +69,4 @@ subprojects {
   }
 }
 
-eclipse.project.name = 'Apocalypse-Tower' + '-parent'
+eclipse.project.name = 'AniviasRealm3' + '-parent'
