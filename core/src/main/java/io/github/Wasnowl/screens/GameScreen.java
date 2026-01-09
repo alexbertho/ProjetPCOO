@@ -48,6 +48,8 @@ public class GameScreen extends ScreenAdapter {
     private TiledMap map;
     private OrthogonalTiledMapRenderer mapRenderer;
     private SpriteBatch batch;
+    private int mapPixelWidth;
+    private int mapPixelHeight;
     // UI
     private Stage uiStage;
     private Skin uiSkin;
@@ -212,14 +214,9 @@ public class GameScreen extends ScreenAdapter {
 
         waveManager = new WaveManager(enemies);
 
-        camera = new OrthographicCamera();
-        viewport = new FitViewport(800, 600, camera);
-
         map = new TmxMapLoader().load(mapPath);
         mapRenderer = new OrthogonalTiledMapRenderer(map, 1f);
-
-        camera.position.set(400, 300, 0);
-        camera.update();
+        configureViewportForMap();
 
     }
 
@@ -288,7 +285,7 @@ public class GameScreen extends ScreenAdapter {
 
     @Override
     public void resize(int width, int height) {
-        viewport.update(width, height);
+        if (viewport != null) viewport.update(width, height);
         if (uiStage != null) uiStage.getViewport().update(width, height, true);
     }
 
@@ -375,5 +372,23 @@ public class GameScreen extends ScreenAdapter {
         uiStage.addActor(window);
         towerMenuWindow = window;
         showTowerMenu = true;
+    }
+
+    private void configureViewportForMap() {
+        int mapWidth = map.getProperties().get("width", Integer.class);
+        int mapHeight = map.getProperties().get("height", Integer.class);
+        int tileWidth = map.getProperties().get("tilewidth", Integer.class);
+        int tileHeight = map.getProperties().get("tileheight", Integer.class);
+
+        mapPixelWidth = mapWidth * tileWidth;
+        mapPixelHeight = mapHeight * tileHeight;
+
+        camera = new OrthographicCamera();
+        viewport = new FitViewport(mapPixelWidth, mapPixelHeight, camera);
+        viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
+
+        if (!Gdx.graphics.isFullscreen()) {
+            Gdx.graphics.setWindowedMode(mapPixelWidth, mapPixelHeight);
+        }
     }
 }
