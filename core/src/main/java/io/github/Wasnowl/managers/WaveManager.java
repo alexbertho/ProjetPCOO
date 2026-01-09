@@ -82,15 +82,16 @@ public class WaveManager {
         enemy.setSize(new com.badlogic.gdx.math.Vector2(32f, 32f));
 
         if (enemyId != -1) {
-            // Charger les 3 spritesheets (walk normal, walk endommagé, death)
+            // Charger seulement walk et death au spawn
+            // walk2 sera chargé de manière lazy quand <50% HP
             TextureRegion[] walk = EnemyAssetManager.getInstance().loadAnimationFromSpritesheet(enemyId, "walk", 6, 1);
             if (walk != null) enemy.setWalkFrames(walk, 0.1f);
 
-            TextureRegion[] walk2 = EnemyAssetManager.getInstance().loadAnimationFromSpritesheet(enemyId, "walk2", 6, 1);
-            if (walk2 != null) enemy.setWalk2Frames(walk2, 0.1f);
-
             TextureRegion[] death = EnemyAssetManager.getInstance().loadAnimationFromSpritesheet(enemyId, "death", 6, 1);
             if (death != null) enemy.setDeathFrames(death, 0.1f);
+
+            // Passer l'ID pour lazy loading de walk2
+            enemy.setEnemyId(enemyId);
         }
 
         enemies.add(enemy);

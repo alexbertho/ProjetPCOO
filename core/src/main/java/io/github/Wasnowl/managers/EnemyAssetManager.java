@@ -36,40 +36,35 @@ public class EnemyAssetManager {
         Map<String, TextureRegion[]> m = cache.get(id);
         if (m != null && m.containsKey(animName)) return m.get(animName);
 
-        // Construire listes de candidates de noms de fichiers, pour gérer vos conventions (S_Walk.png, D_Death.png, etc.)
-        String capitalized = animName.length() > 0 ? animName.substring(0,1).toUpperCase() + animName.substring(1) : animName;
-        String[] prefixes;
-        if (animName.equalsIgnoreCase("walk")) prefixes = new String[]{"S_", "s_", ""};
-        else if (animName.equalsIgnoreCase("death") || animName.equalsIgnoreCase("die")) prefixes = new String[]{"D_", "d_", ""};
-        else prefixes = new String[]{"", "S_", "s_", "D_", "d_"};
-
-        String[] nameVariants = new String[] { capitalized, animName };
+        // Générer variantes avec majuscules correctes (ex: D_Walk, D_Walk2, S_Walk, S_Walk2)
+        String[] nameVariants = new String[]{};
+        
+        if (animName.equalsIgnoreCase("walk")) {
+            nameVariants = new String[]{"S_Walk", "s_walk", "Walk", "walk"};
+        } else if (animName.equalsIgnoreCase("walk2")) {
+            nameVariants = new String[]{"S_Walk2", "s_walk2", "Walk2", "walk2"};
+        } else if (animName.equalsIgnoreCase("death") || animName.equalsIgnoreCase("die")) {
+            nameVariants = new String[]{"S_Death", "D_Death", "s_death", "d_death", "Death", "death"};
+        }
 
         Exception lastEx = null;
         Texture sheet = null;
         String foundPath = null;
 
-        for (String prefix : prefixes) {
-            for (String base : nameVariants) {
-                String path = ENEMY_ASSETS_PATH + id + "/" + prefix + base + ".png";
-                try {
-                    sheet = new Texture(path);
-                    foundPath = path;
-                    break;
-                } catch (Exception e) {
-                    lastEx = e;
-                    // essayer le suivant
-                }
+        for (String variant : nameVariants) {
+            String path = ENEMY_ASSETS_PATH + id + "/" + variant + ".png";
+            try {
+                sheet = new Texture(path);
+                foundPath = path;
+                break;
+            } catch (Exception e) {
+                lastEx = e;
             }
-            if (sheet != null) break;
         }
 
         if (sheet == null) {
-            // Aucune candidate trouvée
-            System.err.println("Erreur: impossible de trouver de spritesheet pour enemy " + id + " (anim: " + animName + ")");
-            if (lastEx != null) {
-                System.err.println("Dernière erreur: " + lastEx.getMessage());
-            }
+            System.err.println("Erreur: impossible de trouver spritesheet pour enemy " + id + " (anim: " + animName + ")");
+            if (lastEx != null) System.err.println("Dernier essai: " + lastEx.getMessage());
             return null;
         }
 
@@ -93,7 +88,7 @@ public class EnemyAssetManager {
             m.put(animName, frames);
             return frames;
         } catch (Exception e) {
-            System.err.println("Erreur: impossible de découper la spritesheet " + foundPath + " -> " + e.getMessage());
+            System.err.println("Erreur: impossible de découper " + foundPath + " -> " + e.getMessage());
             e.printStackTrace();
             return null;
         }

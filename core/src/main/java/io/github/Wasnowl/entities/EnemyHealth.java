@@ -1,18 +1,28 @@
 package io.github.Wasnowl.entities;
 
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import io.github.Wasnowl.managers.EnemyAssetManager;
+
 /**
  * EnemyHealth : gère la vie et les transitions d'état basées sur les HP
  * Responsabilité unique : système de santé et logique de transition
+ * Lazy loading: walk2 est chargé seulement à la première transition <50%HP
  */
 public class EnemyHealth {
     private float maxHealth;
     private float health;
     private EnemyAnimator animator;
+    private int enemyId = -1; // Pour lazy loading de walk2
+    private boolean walk2Loaded = false;
 
     public EnemyHealth(float maxHealth, EnemyAnimator animator) {
         this.maxHealth = maxHealth;
         this.health = maxHealth;
         this.animator = animator;
+    }
+
+    public void setEnemyId(int id) {
+        this.enemyId = id;
     }
 
     /**
@@ -37,8 +47,22 @@ public class EnemyHealth {
             // Déclencher l'animation de mort
             animator.setState(EnemyAnimator.State.DEATH);
         } else if (animator.getState() == EnemyAnimator.State.WALK && healthRatio < 0.5f) {
-            // Passer à walk2 (ennemi endommagé)
+            // Passer à walk2 (ennemi endommagé) - lazy load si nécessaire
+            loadWalk2IfNeeded();
             animator.setState(EnemyAnimator.State.WALK2);
+        }
+    }
+
+    /**
+     * Charge walk2 de manière lazy (seulement quand nécessaire)
+     */
+    private void loadWalk2IfNeeded() {
+        if (!walk2Loaded && enemyId != -1) {
+            TextureRegion[] walk2 = EnemyAssetManager.getInstance().loadAnimationFromSpritesheet(enemyId, "walk2", 6, 1);
+            if (walk2 != null) {
+                animator.setWalk2Frames(walk2, 0.1f);
+            }
+            walk2Loaded = true;
         }
     }
 

@@ -22,6 +22,13 @@ public class Enemy extends GameObject {
         this.size = new Vector2(32f, 32f);
     }
 
+    /**
+     * Doit être appelé après la création pour permettre le lazy loading de walk2
+     */
+    public void setEnemyId(int id) {
+        health.setEnemyId(id);
+    }
+
     @Override
     public void update(float delta) {
         movement.update(delta);
