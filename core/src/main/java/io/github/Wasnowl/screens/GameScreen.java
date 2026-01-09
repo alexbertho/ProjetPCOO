@@ -61,6 +61,7 @@ public class GameScreen extends ScreenAdapter {
     private BitmapFont hudFont;
     private Label balanceLabel;
     private Label costLabel;
+    private TextButton nextWaveButton;
 
     private PlayerTower player;
     private Array<Tower> towers;
@@ -137,6 +138,22 @@ public class GameScreen extends ScreenAdapter {
             }
         });
 
+        // Bottom-right Next Wave button
+        nextWaveButton = new TextButton("Next Wave", uiSkin);
+        nextWaveButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                if (waveManager != null && waveManager.isWaveFinished()) {
+                    waveManager.startNextWave();
+                }
+            }
+        });
+        Table bottomRight = new Table();
+        bottomRight.setFillParent(true);
+        bottomRight.bottom().right();
+        bottomRight.add(nextWaveButton).pad(8);
+        uiStage.addActor(bottomRight);
+
         // ShapeRenderer for preview
         shapeRenderer = new ShapeRenderer();
 
@@ -193,7 +210,7 @@ public class GameScreen extends ScreenAdapter {
 
         Gdx.input.setInputProcessor(inputMultiplexer);
 
-        waveManager = new WaveManager();
+        waveManager = new WaveManager(enemies);
 
         camera = new OrthographicCamera();
         viewport = new FitViewport(800, 600, camera);
@@ -219,6 +236,10 @@ public class GameScreen extends ScreenAdapter {
 
         // Update
         waveManager.update(delta);
+        // Activer/désactiver le bouton Next Wave selon l'état de la vague
+        if (nextWaveButton != null) {
+            nextWaveButton.setDisabled(!waveManager.isWaveFinished());
+        }
         player.update(delta);
         for (Tower t : towers) t.update(delta);
         for (Enemy e : enemies) e.update(delta);

@@ -66,6 +66,8 @@ public class PlacementController {
                             .withTowerType(previewType)
                             .withEnemies(enemies)
                             .withProjectiles(projectiles)
+                            .withTowerId(7) // Utiliser le sprite tower 7
+                            .withSize(32f) // Taille 32x32 pixels
                             .build();
                         towers.add(placed);
                     }

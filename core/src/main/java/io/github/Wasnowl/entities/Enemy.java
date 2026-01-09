@@ -1,56 +1,74 @@
 package io.github.Wasnowl.entities;
+
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import io.github.Wasnowl.GameObject;
 
+/**
+ * Enemy : orchestration des 3 composants (Movement, Health, Animator)
+ * Responsabilité : coordonner les sous-systèmes
+ */
 public class Enemy extends GameObject {
-    private Vector2[] path;
-    private int currentPoint = 0;
-    private float speed;
-
-    // Système de vie
-    private float maxHealth = 100f;
-    private float health = maxHealth;
+    private EnemyMovement movement;
+    private EnemyHealth health;
+    private EnemyAnimator animator;
 
     public Enemy(float x, float y, Vector2[] path, float speed) {
         super(x, y);
-        this.path = path;
-        this.speed = speed;
+        animator = new EnemyAnimator();
+        movement = new EnemyMovement(new Vector2(x, y), path, speed);
+        health = new EnemyHealth(100f, animator);
+        this.size = new Vector2(32f, 32f);
     }
 
     @Override
     public void update(float delta) {
-        if (currentPoint < path.length) {
-            Vector2 target = path[currentPoint];
-            Vector2 direction = target.cpy().sub(position).nor();
-            position.add(direction.scl(speed * delta));
+        movement.update(delta);
+        animator.update(delta);
+        health.update();
 
-            if (position.dst(target) < 0.1f) {
-                currentPoint++;
-            }
-        }
+        // Synchroniser la position avec le rendu
+        position = movement.getPosition();
     }
 
     @Override
     public void render(SpriteBatch batch) {
-        // draw...
+        animator.render(batch, position, size);
     }
 
-    // API combat
+    // API publique pour les dégâts
     public void takeDamage(float amount) {
-        health = Math.max(0f, health - amount);
+        health.takeDamage(amount);
+        // Arrêter le mouvement si mort
+        if (health.isDead()) {
+            movement.stop();
+        }
     }
 
     public boolean isDead() {
-        return health <= 0f;
+        return health.isDead();
     }
 
     public float getHealth() {
-        return health;
+        return health.getHealth();
     }
 
     public float getMaxHealth() {
-        return maxHealth;
+        return health.getMaxHealth();
+    }
+
+    // Delegation pour les animations
+    public void setWalkFrames(TextureRegion[] frames, float frameDuration) {
+        animator.setWalkFrames(frames, frameDuration);
+    }
+
+    public void setWalk2Frames(TextureRegion[] frames, float frameDuration) {
+        animator.setWalk2Frames(frames, frameDuration);
+    }
+
+    public void setDeathFrames(TextureRegion[] frames, float frameDuration) {
+        animator.setDeathFrames(frames, frameDuration);
     }
 }
 

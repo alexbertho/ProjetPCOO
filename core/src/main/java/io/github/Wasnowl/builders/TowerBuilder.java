@@ -5,6 +5,7 @@ import io.github.Wasnowl.entities.Enemy;
 import io.github.Wasnowl.entities.Projectile;
 import io.github.Wasnowl.entities.ProjectileType;
 import io.github.Wasnowl.entities.TowerType;
+import io.github.Wasnowl.managers.TowerAssetManager;
 import com.badlogic.gdx.utils.Array;
 
 /**
@@ -20,6 +21,8 @@ public class TowerBuilder {
     private TowerType towerType = null;
     private Array<Enemy> enemies;
     private Array<Projectile> projectiles;
+    private int towerId = 7; // ID du sprite de la tour (défaut: 7)
+    private float size = 32f; // taille du sprite en pixels
 
     public TowerBuilder(float x, float y) {
         this.x = x;
@@ -56,6 +59,16 @@ public class TowerBuilder {
         this.projectiles = projectiles;
         return this;
     }
+    
+    public TowerBuilder withTowerId(int towerId) {
+        this.towerId = towerId;
+        return this;
+    }
+    
+    public TowerBuilder withSize(float size) {
+        this.size = size;
+        return this;
+    }
 
     public Tower build() {
         if (enemies == null || projectiles == null) {
@@ -64,6 +77,17 @@ public class TowerBuilder {
         Tower tower = new Tower(x, y, range, fireRate, enemies, projectiles);
         tower.setProjectileType(projectileType);
         if (towerType != null) tower.setTowerType(towerType);
+        
+        // Charger et assigner l'animation spritesheet
+        tower.setSize(new com.badlogic.gdx.math.Vector2(size, size));
+        com.badlogic.gdx.graphics.g2d.TextureRegion[] frames = TowerAssetManager.getInstance().loadTowerAnimationFromSpritesheet(towerId, 6, 1);
+        if (frames != null) {
+            tower.setAnimation(frames, 0.1f); // 0.1s par frame = 10 frames/sec
+            tower.setAnimating(true);
+        } else {
+            System.err.println("Warning: animation non trouvée pour la tour " + towerId);
+        }
+        
         return tower;
     }
 }

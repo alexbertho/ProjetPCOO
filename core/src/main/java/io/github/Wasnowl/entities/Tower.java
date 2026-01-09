@@ -19,6 +19,9 @@ public class Tower extends GameObject {
     // Référence vers la liste globale des ennemis et projectiles
     private Array<Enemy> enemies;
     private Array<Projectile> projectiles;
+    
+    // Gestion du rendu (texture, animation)
+    protected TowerRenderer renderer;
 
     public Tower(float x, float y, float range, float fireRate,
                  Array<Enemy> enemies, Array<Projectile> projectiles) {
@@ -27,10 +30,26 @@ public class Tower extends GameObject {
         this.fireRate = fireRate;
         this.enemies = enemies;
         this.projectiles = projectiles;
+        this.renderer = new TowerRenderer();
+    }
+    
+    public void setTexture(com.badlogic.gdx.graphics.g2d.TextureRegion texture) {
+        renderer.setTexture(texture);
+    }
+    
+    public void setAnimation(com.badlogic.gdx.graphics.g2d.TextureRegion[] frames, float frameDuration) {
+        renderer.setAnimation(frames, frameDuration);
+    }
+    
+    public void setAnimating(boolean animating) {
+        renderer.setAnimating(animating);
     }
 
     @Override
     public void update(float delta) {
+        // Mettre à jour l'animation
+        renderer.update(delta);
+        
         fireCooldown -= delta;
         Enemy target = findTarget();
         if (target != null && fireCooldown <= 0) {
@@ -41,8 +60,7 @@ public class Tower extends GameObject {
 
     @Override
     public void render(SpriteBatch batch) {
-        // Exemple : dessiner une texture de tour
-        // batch.draw(texture, position.x, position.y, size.x, size.y);
+        renderer.render(batch, position, size);
     }
 
     private Enemy findTarget() {
