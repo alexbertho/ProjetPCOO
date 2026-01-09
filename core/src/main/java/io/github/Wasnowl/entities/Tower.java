@@ -17,8 +17,8 @@ public class Tower extends GameObject {
     protected int cost = 0;
 
     // Référence vers la liste globale des ennemis et projectiles
-    private Array<Enemy> enemies;
-    private Array<Projectile> projectiles;
+    protected Array<Enemy> enemies;
+    protected Array<Projectile> projectiles;
     
     // Gestion du rendu (texture, animation)
     protected TowerRenderer renderer;

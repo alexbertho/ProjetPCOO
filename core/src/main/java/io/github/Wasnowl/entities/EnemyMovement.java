@@ -23,12 +23,19 @@ public class EnemyMovement {
         if (!isMoving || currentPoint >= path.length) return;
 
         Vector2 target = path[currentPoint];
-        Vector2 direction = target.cpy().sub(position).nor();
-        position.add(direction.scl(speed * delta));
+        Vector2 direction = target.cpy().sub(position);
+        float distance = direction.len();
 
-        if (position.dst(target) < 0.1f) {
+        // Si on est très proche du point cible, passer au suivant directement
+        if (distance < 1.0f) {
+            position.set(target);
             currentPoint++;
+            return;
         }
+
+        // Normaliser et avancer
+        direction.nor();
+        position.add(direction.scl(speed * delta));
     }
 
     /**

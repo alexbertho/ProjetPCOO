@@ -105,7 +105,7 @@ public class GameScreen extends ScreenAdapter {
 
         player = new PlayerTower(100, 100, 150, 1f, enemies, projectiles, portals, game);
         // Currency manager
-        currencyManager = new CurrencyManager(300); // monnaie de départ
+        currencyManager = new CurrencyManager(50); // monnaie de départ
 
         // UI stage for tower menu
         uiSkin = new Skin(Gdx.files.internal("uiskin.json"));
@@ -212,8 +212,50 @@ public class GameScreen extends ScreenAdapter {
 
         Gdx.input.setInputProcessor(inputMultiplexer);
 
-        waveManager = new WaveManager(enemies);
+        waveManager = new WaveManager(enemies, currencyManager);
+        // Callback pour mettre à jour l'UI quand l'argent change
+        waveManager.setOnMoneyChanged(() -> {
+            balanceLabel.setText("Gold: " + currencyManager.getBalance());
+        });
 
+        // Charger les sprites de projectiles (si présents) depuis assets/projectiles/
+        try {
+            com.badlogic.gdx.graphics.Texture tSimple = null;
+            com.badlogic.gdx.graphics.Texture tAoe = null;
+            com.badlogic.gdx.graphics.Texture tRic = null;
+            if (Gdx.files.internal("projectiles/simple.png").exists()) {
+                tSimple = new com.badlogic.gdx.graphics.Texture(Gdx.files.internal("projectiles/simple.png"));
+            }
+            if (Gdx.files.internal("projectiles/aoe.png").exists()) {
+                tAoe = new com.badlogic.gdx.graphics.Texture(Gdx.files.internal("projectiles/aoe.png"));
+            }
+            if (Gdx.files.internal("projectiles/ricochet.png").exists()) {
+                tRic = new com.badlogic.gdx.graphics.Texture(Gdx.files.internal("projectiles/ricochet.png"));
+            }
+
+            float frameDuration = 0.12f; // vitesse d'animation
+            // helper to build animation from a horizontal 2-frame spritesheet
+            java.util.function.BiConsumer<com.badlogic.gdx.graphics.Texture, io.github.Wasnowl.entities.ProjectileType> buildAnim = (tex, ptype) -> {
+                if (tex == null) return;
+                int frameCount = 2;
+                int fw = tex.getWidth() / frameCount;
+                int fh = tex.getHeight();
+                com.badlogic.gdx.graphics.g2d.TextureRegion[][] tmp = com.badlogic.gdx.graphics.g2d.TextureRegion.split(tex, fw, fh);
+                com.badlogic.gdx.utils.Array<com.badlogic.gdx.graphics.g2d.TextureRegion> frames = new com.badlogic.gdx.utils.Array<>();
+                for (int i = 0; i < frameCount; i++) frames.add(tmp[0][i]);
+                com.badlogic.gdx.graphics.g2d.Animation<com.badlogic.gdx.graphics.g2d.TextureRegion> anim = new com.badlogic.gdx.graphics.g2d.Animation<>(frameDuration, frames, com.badlogic.gdx.graphics.g2d.Animation.PlayMode.LOOP);
+                io.github.Wasnowl.managers.ProjectileAssetManager.getInstance().setProjectileAnimation(ptype, anim);
+            };
+
+            buildAnim.accept(tSimple, io.github.Wasnowl.entities.ProjectileType.SIMPLE);
+            buildAnim.accept(tAoe, io.github.Wasnowl.entities.ProjectileType.AOE_STRONG);
+            buildAnim.accept(tRic, io.github.Wasnowl.entities.ProjectileType.RICOCHET);
+
+        } catch (Exception e) {
+            Gdx.app.log("ASSETS", "Failed to load projectile sprites: " + e.getMessage());
+        }
+
+        // Charger la carte depuis assets/maps/
         map = new TmxMapLoader().load(mapPath);
         mapRenderer = new OrthogonalTiledMapRenderer(map, 1f);
         configureViewportForMap();
@@ -230,6 +272,9 @@ public class GameScreen extends ScreenAdapter {
         camera.update();
         mapRenderer.setView(camera);
         mapRenderer.render();
+        
+        // Rendre les object layers (buildings, trees, props, etc.)
+        renderMapObjectLayer(batch);
 
         // Update
         waveManager.update(delta);
@@ -239,7 +284,6 @@ public class GameScreen extends ScreenAdapter {
         }
         player.update(delta);
         for (Tower t : towers) t.update(delta);
-        for (Enemy e : enemies) e.update(delta);
         projectileManager.update(delta);  // Utiliser le ProjectileManager
 
         // Render
@@ -250,6 +294,8 @@ public class GameScreen extends ScreenAdapter {
         for (Enemy e : enemies) e.render(batch);
         projectileManager.render(batch);  // Utiliser le ProjectileManager
         batch.end();
+
+        // Projectiles are now rendered by their Sprite/Animation via ProjectileManager
 
         // Render preview (using ShapeRenderer)
         if (placingPreview && previewTowerType != null) {
@@ -314,10 +360,12 @@ public class GameScreen extends ScreenAdapter {
 
         TextButton btnSimple = new TextButton("Simple (" + TowerType.SIMPLE.getCost() + ")", uiSkin);
         TextButton btnAOE = new TextButton("AOE (" + TowerType.AOE.getCost() + ")", uiSkin);
+        TextButton btnCleave = new TextButton("Cleave (" + TowerType.RICOCHET.getCost() + ")", uiSkin);
         TextButton btnClose = new TextButton("Close", uiSkin);
 
         window.add(btnSimple).row();
         window.add(btnAOE).row();
+        window.add(btnCleave).row();
         window.add(btnClose).row();
         window.pack();
         window.setPosition(uiStage.getViewport().getWorldWidth()/2f - window.getWidth()/2f, 60);
@@ -362,6 +410,26 @@ public class GameScreen extends ScreenAdapter {
             }
         });
 
+        btnCleave.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                previewTowerType = TowerType.RICOCHET;
+                placingPreview = true;
+                costLabel.setText("Cost: " + previewTowerType.getCost());
+                toggleTowerMenu();
+            }
+        });
+        btnCleave.addListener(new InputListener() {
+            @Override
+            public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
+                costLabel.setText("Cost: " + TowerType.RICOCHET.getCost());
+            }
+            @Override
+            public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
+                if (!placingPreview) costLabel.setText("");
+            }
+        });
+
         btnClose.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -372,6 +440,42 @@ public class GameScreen extends ScreenAdapter {
         uiStage.addActor(window);
         towerMenuWindow = window;
         showTowerMenu = true;
+    }
+
+    private void renderMapObjectLayer(SpriteBatch batch) {
+        if (map == null) return;
+        
+        batch.setProjectionMatrix(camera.combined);
+        batch.begin();
+        
+        // Parcourir tous les layers pour trouver les object layers
+        for (com.badlogic.gdx.maps.MapLayer mapLayer : map.getLayers()) {
+            // Vérifier si c'est un layer sans tuiles (object layer)
+            if (!(mapLayer instanceof com.badlogic.gdx.maps.tiled.TiledMapTileLayer)) {
+                // Accéder aux objets du layer
+                com.badlogic.gdx.maps.MapObjects objects = mapLayer.getObjects();
+                if (objects != null) {
+                    for (com.badlogic.gdx.maps.MapObject obj : objects) {
+                        // Vérifier s'il y a un GID (global tile id)
+                        Object gidObj = obj.getProperties().get("gid");
+                        if (gidObj != null) {
+                            int gid = ((Number) gidObj).intValue();
+                            
+                            // Chercher le tile avec ce gid dans les tilesets
+                            com.badlogic.gdx.maps.tiled.TiledMapTile tile = map.getTileSets().getTile(gid);
+                            if (tile != null && tile.getTextureRegion() != null) {
+                                com.badlogic.gdx.graphics.g2d.TextureRegion region = tile.getTextureRegion();
+                                float x = ((Number) obj.getProperties().get("x")).floatValue();
+                                float y = ((Number) obj.getProperties().get("y")).floatValue();
+                                batch.draw(region, x, y);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        batch.end();
     }
 
     private void configureViewportForMap() {

@@ -6,6 +6,7 @@ import com.badlogic.gdx.utils.Array;
 import java.util.List;
 import java.util.ArrayList;
 import io.github.Wasnowl.entities.Enemy;
+import io.github.Wasnowl.strategies.PathStrategyFactory;
 import java.util.Iterator;
 
 /**
@@ -19,12 +20,22 @@ public class WaveManager {
     private int enemiesToSpawn = 0;
     private int enemiesSpawned = 0;
     private List<Integer> spawnQueue = new ArrayList<>();
+    private CurrencyManager currencyManager;
+    private Runnable onMoneyChanged; // Callback pour mettre à jour l'UI
 
     // Configuration des vagues (exemple simple)
-    private int[] waveSizes = {5, 10, 15}; // nombre d’ennemis par vague
+    private int[] waveSizes = {5, 10, 15}; // nombre d'ennemis par vague
 
-    public WaveManager(Array<Enemy> enemies) {
+    public WaveManager(Array<Enemy> enemies, CurrencyManager currencyManager) {
         this.enemies = enemies;
+        this.currencyManager = currencyManager;
+    }
+
+    /**
+     * Définit une callback appelée quand l'argent change
+     */
+    public void setOnMoneyChanged(Runnable callback) {
+        this.onMoneyChanged = callback;
     }
 
     public void startNextWave() {
@@ -65,6 +76,15 @@ public class WaveManager {
             Enemy e = enemies.get(i);
             e.update(delta);
             if (e.isDead()) {
+                // Donner de l'argent si l'ennemi n'a pas atteint la fin du chemin
+                if (!e.hasReachedEndOfPath()) {
+                    int reward = getRewardForEnemyType(e.getEnemyType());
+                    currencyManager.add(reward);
+                    // Notifier que l'argent a changé
+                    if (onMoneyChanged != null) {
+                        onMoneyChanged.run();
+                    }
+                }
                 enemies.removeIndex(i);
             }
         }
@@ -98,13 +118,19 @@ public class WaveManager {
     }
 
     private Vector2[] getPathForWave(int wave) {
-        // Ici tu peux définir des chemins différents selon la vague
-        return new Vector2[] {
-            new Vector2(0, 0),
-            new Vector2(5, 0),
-            new Vector2(5, 5),
-            new Vector2(10, 5)
-        };
+        // Utilise la stratégie de chemin via la Factory
+        return PathStrategyFactory.getStrategyForWave(wave).getPath();
+    }
+
+    /**
+     * Retourne la récompense pour un type d'ennemi
+     * Type 1 = 1 or, Type 2 = 2 or, Type 3 = 3 or, Type 4 = 4 or
+     */
+    private int getRewardForEnemyType(int enemyType) {
+        if (enemyType >= 1 && enemyType <= 4) {
+            return enemyType;
+        }
+        return 0;
     }
 
     public boolean isWaveFinished() {

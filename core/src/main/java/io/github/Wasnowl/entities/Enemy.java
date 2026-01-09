@@ -13,6 +13,8 @@ public class Enemy extends GameObject {
     private EnemyMovement movement;
     private EnemyHealth health;
     private EnemyAnimator animator;
+    private int enemyType = -1;
+    private boolean reachedEndOfPath = false;
 
     public Enemy(float x, float y, Vector2[] path, float speed) {
         super(x, y);
@@ -27,6 +29,7 @@ public class Enemy extends GameObject {
      */
     public void setEnemyId(int id) {
         health.setEnemyId(id);
+        this.enemyType = id;
     }
 
     @Override
@@ -37,6 +40,12 @@ public class Enemy extends GameObject {
 
         // Synchroniser la position avec le rendu
         position = movement.getPosition();
+
+        // Si l'ennemi atteint la fin du chemin, le marquer comme mort
+        if (movement.hasReachedEnd() && !health.isDead()) {
+            reachedEndOfPath = true;
+            takeDamage(health.getMaxHealth());
+        }
     }
 
     @Override
@@ -76,6 +85,14 @@ public class Enemy extends GameObject {
 
     public void setDeathFrames(TextureRegion[] frames, float frameDuration) {
         animator.setDeathFrames(frames, frameDuration);
+    }
+
+    public int getEnemyType() {
+        return enemyType;
+    }
+
+    public boolean hasReachedEndOfPath() {
+        return reachedEndOfPath;
     }
 }
 

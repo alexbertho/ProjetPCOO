@@ -14,7 +14,9 @@ public class ProjectileTypeFactory {
     static {
         // Précharger les types prédéfinis
         typeCache.put("SIMPLE", ProjectileType.SIMPLE);
-        typeCache.put("AOE", ProjectileType.AOE);
+        typeCache.put("AOE", ProjectileType.AOE_STRONG); // map generic AOE to the stronger AOE variant
+        typeCache.put("AOE_STRONG", ProjectileType.AOE_STRONG);
+        typeCache.put("RICOCHET", ProjectileType.RICOCHET);
     }
 
     /**

@@ -1,6 +1,7 @@
 package io.github.Wasnowl.builders;
 
 import io.github.Wasnowl.entities.Tower;
+import io.github.Wasnowl.entities.RicochetTower;
 import io.github.Wasnowl.entities.Enemy;
 import io.github.Wasnowl.entities.Projectile;
 import io.github.Wasnowl.entities.ProjectileType;
@@ -74,7 +75,16 @@ public class TowerBuilder {
         if (enemies == null || projectiles == null) {
             throw new IllegalStateException("enemies et projectiles doivent être définis");
         }
-        Tower tower = new Tower(x, y, range, fireRate, enemies, projectiles);
+        
+        Tower tower;
+        
+        // Créer le bon type de tour selon le TowerType
+        if (towerType == TowerType.RICOCHET) {
+            tower = new RicochetTower(x, y, range, fireRate, enemies, projectiles);
+        } else {
+            tower = new Tower(x, y, range, fireRate, enemies, projectiles);
+        }
+        
         tower.setProjectileType(projectileType);
         if (towerType != null) tower.setTowerType(towerType);
         

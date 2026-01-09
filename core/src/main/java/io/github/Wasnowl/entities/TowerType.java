@@ -4,8 +4,9 @@ package io.github.Wasnowl.entities;
  * Types de tour, contenant le coût et le type de projectile associé.
  */
 public enum TowerType {
-    SIMPLE(100, ProjectileType.SIMPLE),
-    AOE(200, ProjectileType.AOE);
+    SIMPLE(10, ProjectileType.SIMPLE),
+    AOE(20, ProjectileType.AOE_STRONG),
+    RICOCHET(30, ProjectileType.RICOCHET);
 
     private final int cost;
     private final ProjectileType projectileType;

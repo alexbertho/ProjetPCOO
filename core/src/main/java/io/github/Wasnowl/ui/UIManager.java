@@ -113,10 +113,12 @@ public class UIManager {
 
         TextButton btnSimple = new TextButton("Simple (" + TowerType.SIMPLE.getCost() + ")", skin);
         TextButton btnAOE = new TextButton("AOE (" + TowerType.AOE.getCost() + ")", skin);
+        TextButton btnCleave = new TextButton("Cleave (" + TowerType.RICOCHET.getCost() + ")", skin);
         TextButton btnClose = new TextButton("Close", skin);
 
         towerWindow.add(btnSimple).row();
         towerWindow.add(btnAOE).row();
+        towerWindow.add(btnCleave).row();
         towerWindow.add(btnClose).row();
         towerWindow.pack();
         towerWindow.setPosition(stage.getViewport().getWorldWidth()/2f - towerWindow.getWidth()/2f, 60);
@@ -152,6 +154,25 @@ public class UIManager {
             @Override
             public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
                 costLabel.setText("Cost: " + TowerType.AOE.getCost());
+            }
+            @Override
+            public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
+                costLabel.setText("");
+            }
+        });
+
+        btnCleave.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                notifyTowerSelected(TowerType.RICOCHET);
+                towerWindow.remove();
+                towerWindow = null;
+            }
+        });
+        btnCleave.addListener(new InputListener() {
+            @Override
+            public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
+                costLabel.setText("Cost: " + TowerType.RICOCHET.getCost());
             }
             @Override
             public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {

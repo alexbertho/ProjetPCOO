@@ -11,11 +11,13 @@ import io.github.Wasnowl.GameObject;
  * - État extrinsèque : position, target, velocity (uniques pour chaque instance)
  */
 public class Projectile extends GameObject {
-    private ProjectileType type;  // Flyweight intrinsic state
-    private Vector2 velocity;
-    private Enemy target;
-    private Array<Enemy> allEnemies;  // pour dégâts AOE
-    private boolean dead = false;
+    protected ProjectileType type;  // Flyweight intrinsic state
+    protected Vector2 velocity;
+    protected Enemy target;
+    protected Array<Enemy> allEnemies;  // pour dégâts AOE
+    protected boolean dead = false;
+    protected com.badlogic.gdx.graphics.g2d.TextureRegion texture; // Texture du projectile pour rendu
+    protected float stateTime = 0f; // pour l'animation
 
     public Projectile(Vector2 start, Enemy target, ProjectileType type) {
         this(start, target, type, null);
@@ -26,6 +28,7 @@ public class Projectile extends GameObject {
         this.type = type;
         this.target = target;
         this.allEnemies = allEnemies;
+        setSizeFromType(type);
         // Calcul de la vélocité basée sur le speed du type
         this.velocity = target.getPosition().cpy().sub(start).nor().scl(type.getSpeed());
     }
@@ -39,6 +42,7 @@ public class Projectile extends GameObject {
         this.target = target;
         this.allEnemies = allEnemies;
         this.dead = false;
+        setSizeFromType(type);
         if (target != null) {
             this.velocity = target.getPosition().cpy().sub(start).nor().scl(type.getSpeed());
         } else {
@@ -46,22 +50,52 @@ public class Projectile extends GameObject {
         }
     }
 
+    private void setSizeFromType(ProjectileType type) {
+        if (type == null) {
+            this.size = new Vector2(12f, 12f);
+            return;
+        }
+        switch (type) {
+            case AOE_STRONG:
+                this.size = new Vector2(32f, 32f);
+                break;
+            case RICOCHET:
+                this.size = new Vector2(10f, 10f);
+                break;
+            case SIMPLE:
+            default:
+                this.size = new Vector2(14f, 14f);
+                break;
+        }
+    }
+
     @Override
     public void update(float delta) {
+        stateTime += delta;
         if (target == null || target.isDead()) {
             dead = true;
             return;
         }
 
-        position.add(velocity.cpy().scl(delta));
+        // Recalculer la direction vers la cible pour la suivre en temps réel
+        Vector2 direction = target.getPosition().cpy().sub(position);
+        float distance = direction.len();
 
-        if (position.dst(target.getPosition()) < 5f) {
+        // Si on est très proche, impact
+        if (distance < 5f) {
             handleImpact();
             dead = true;
+            return;
         }
+
+        // Mettre à jour la vélocité pour suivre la cible
+        velocity = direction.nor().scl(type.getSpeed());
+        
+        // Avancer
+        position.add(velocity.cpy().scl(delta));
     }
 
-    private void handleImpact() {
+    protected void handleImpact() {
         if (type.isAOE()) {
             // AOE : infliger dégâts à tous les ennemis dans le rayon
             if (allEnemies != null) {
@@ -82,7 +116,36 @@ public class Projectile extends GameObject {
 
     @Override
     public void render(SpriteBatch batch) {
-        // batch.draw(texture, position.x, position.y, size.x, size.y);
+        // Utiliser la texture ou l'animation du ProjectileType (Flyweight Pattern)
+        if (type != null) {
+            com.badlogic.gdx.graphics.g2d.Animation<com.badlogic.gdx.graphics.g2d.TextureRegion> anim = type.getAnimation();
+            if (anim != null) {
+                // frame basé sur le temps d'animation stocké dans l'instance
+                com.badlogic.gdx.graphics.g2d.TextureRegion frame = anim.getKeyFrame(stateTime, true);
+                batch.draw(frame,
+                        position.x - size.x/2,
+                        position.y - size.y/2,
+                        size.x,
+                        size.y);
+                return;
+            }
+
+            if (type.getTexture() != null) {
+                batch.draw(type.getTexture(),
+                        position.x - size.x/2,
+                        position.y - size.y/2,
+                        size.x,
+                        size.y);
+            }
+        }
+        // Sinon: pas de rendu (sprites à ajouter via ProjectileAssetManager)
+    }
+
+    /**
+     * Définit la texture du projectile (deprecated - utiliser ProjectileAssetManager)
+     */
+    public void setTexture(com.badlogic.gdx.graphics.g2d.TextureRegion tex) {
+        this.texture = tex;
     }
 
     public boolean isDead() {
