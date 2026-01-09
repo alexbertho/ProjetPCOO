@@ -47,23 +47,26 @@ public class EnemyHealth {
             // Déclencher l'animation de mort
             animator.setState(EnemyAnimator.State.DEATH);
         } else if (animator.getState() == EnemyAnimator.State.WALK && healthRatio < 0.5f) {
-            // Passer à walk2 (ennemi endommagé) - lazy load si nécessaire
-            loadWalk2IfNeeded();
-            animator.setState(EnemyAnimator.State.WALK2);
+            // Passer à walk2 (ennemi endommagé) - seulement si walk2 existe
+            if (loadWalk2IfNeeded()) {
+                animator.setState(EnemyAnimator.State.WALK2);
+            }
+            // Sinon rester en WALK (pas de spritesheet walk2)
         }
     }
 
     /**
      * Charge walk2 de manière lazy (seulement quand nécessaire)
+     * @return true si walk2 a été chargé avec succès
      */
-    private void loadWalk2IfNeeded() {
+    private boolean loadWalk2IfNeeded() {
         if (!walk2Loaded && enemyId != -1) {
-            TextureRegion[] walk2 = EnemyAssetManager.getInstance().loadAnimationFromSpritesheet(enemyId, "walk2", 6, 1);
-            if (walk2 != null) {
-                animator.setWalk2Frames(walk2, 0.1f);
-            }
-            walk2Loaded = true;
+            // walk2 est optionnel - ne pas afficher d'erreur s'il n'existe pas
+            TextureRegion[] walk2 = EnemyAssetManager.getInstance().loadAnimationFromSpritesheet(enemyId, "walk2", 6, 1, true);
+            walk2Loaded = true; // marquer comme chargé (ou tenté)
+            return walk2 != null; // retourner si le chargement a réussi
         }
+        return false; // walk2 n'existe pas ou déjà chargé
     }
 
     /**

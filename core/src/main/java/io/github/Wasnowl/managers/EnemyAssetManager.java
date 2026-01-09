@@ -30,9 +30,14 @@ public class EnemyAssetManager {
      * @param animName nom de l'animation (ex: "walk", "death")
      * @param cols colonnes dans le spritesheet
      * @param rows lignes dans le spritesheet
+     * @param optional si true, ne pas afficher d'erreur si l'animation n'existe pas
      * @return tableau de TextureRegion ou null
      */
     public TextureRegion[] loadAnimationFromSpritesheet(int id, String animName, int cols, int rows) {
+        return loadAnimationFromSpritesheet(id, animName, cols, rows, false);
+    }
+
+    public TextureRegion[] loadAnimationFromSpritesheet(int id, String animName, int cols, int rows, boolean optional) {
         Map<String, TextureRegion[]> m = cache.get(id);
         if (m != null && m.containsKey(animName)) return m.get(animName);
 
@@ -63,8 +68,10 @@ public class EnemyAssetManager {
         }
 
         if (sheet == null) {
-            System.err.println("Erreur: impossible de trouver spritesheet pour enemy " + id + " (anim: " + animName + ")");
-            if (lastEx != null) System.err.println("Dernier essai: " + lastEx.getMessage());
+            if (!optional) {
+                System.err.println("Erreur: impossible de trouver spritesheet pour enemy " + id + " (anim: " + animName + ")");
+                if (lastEx != null) System.err.println("Dernier essai: " + lastEx.getMessage());
+            }
             return null;
         }
 
