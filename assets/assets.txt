@@ -333,6 +333,7 @@ libgdx.png
 maps/BeginningFields.tmx
 maps/Rules/RockSlopes_Rules.tmx
 maps/rules.txt
+musique/1.mp3
 towers/COUPON.pdf
 towers/COUPON.png
 towers/Font.png

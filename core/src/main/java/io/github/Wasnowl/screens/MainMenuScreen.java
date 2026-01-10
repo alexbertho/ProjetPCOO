@@ -5,10 +5,15 @@ import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Slider;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.Window;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.Wasnowl.GameMain;
 
@@ -16,6 +21,7 @@ public class MainMenuScreen extends ScreenAdapter {
     private final GameMain game;
     private Stage stage;
     private Skin skin;
+    private Window optionsWindow;
 
     public MainMenuScreen(GameMain game) {
         this.game = game;
@@ -33,15 +39,24 @@ public class MainMenuScreen extends ScreenAdapter {
         stage.addActor(table);
 
         TextButton playButton = new TextButton("Jouer", skin);
+        TextButton optionsButton = new TextButton("Options", skin);
         TextButton quitButton = new TextButton("Quitter", skin);
 
         table.add(playButton).pad(10).row();
+        table.add(optionsButton).pad(10).row();
         table.add(quitButton).pad(10);
 
         playButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 game.setScreen(new GameScreen(game));
+            }
+        });
+
+        optionsButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                toggleOptionsWindow();
             }
         });
 
@@ -65,5 +80,51 @@ public class MainMenuScreen extends ScreenAdapter {
     public void dispose() {
         stage.dispose();
         skin.dispose();
+    }
+
+    private void toggleOptionsWindow() {
+        if (optionsWindow != null) {
+            optionsWindow.remove();
+            optionsWindow = null;
+            return;
+        }
+
+        optionsWindow = new Window("Options", skin);
+        optionsWindow.defaults().pad(6);
+
+        Label volumeLabel = new Label("Volume", skin);
+        Slider volumeSlider = new Slider(0f, 1f, 0.01f, false, skin);
+        if (game.getMusicManager() != null) {
+            volumeSlider.setValue(game.getMusicManager().getVolume());
+        }
+
+        volumeSlider.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                if (game.getMusicManager() != null) {
+                    game.getMusicManager().setVolume(volumeSlider.getValue());
+                }
+            }
+        });
+
+        TextButton closeButton = new TextButton("Fermer", skin);
+        closeButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                toggleOptionsWindow();
+            }
+        });
+
+        optionsWindow.add(volumeLabel);
+        optionsWindow.add(volumeSlider).width(220);
+        optionsWindow.row();
+        optionsWindow.add(closeButton).colspan(2).padTop(6);
+
+        optionsWindow.pack();
+        optionsWindow.setPosition(
+            stage.getViewport().getWorldWidth() / 2f - optionsWindow.getWidth() / 2f,
+            stage.getViewport().getWorldHeight() / 2f - optionsWindow.getHeight() / 2f
+        );
+        stage.addActor(optionsWindow);
     }
 }
