@@ -1,6 +1,7 @@
 package io.github.Wasnowl.entities;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -16,6 +17,8 @@ public class PlayerTower extends Tower {
     private final Vector2 velocity = new Vector2();
     private PlayerAnimator animator;
     private TextureRegion currentFrame;
+    private float worldWidth = -1f;
+    private float worldHeight = -1f;
 
     private GameMain game;
 
@@ -33,6 +36,7 @@ public class PlayerTower extends Tower {
     }
 
     public void move(Vector2 newPos) {
+        clampToWorld(newPos);
         position.set(newPos);
 
         for (Portal portal : portals) {
@@ -58,16 +62,22 @@ public class PlayerTower extends Tower {
     public void update(float delta) {
         float moveX = 0f;
         float moveY = 0f;
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.Q)) {
+        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.LEFT)
+                || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.Q)
+                || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.A)) {
             moveX -= 1f;
         }
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.D)) {
+        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.RIGHT)
+                || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.D)) {
             moveX += 1f;
         }
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.Z)) {
+        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.UP)
+                || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.Z)
+                || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.W)) {
             moveY += 1f;
         }
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.S)) {
+        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.DOWN)
+                || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.S)) {
             moveY -= 1f;
         }
 
@@ -85,6 +95,11 @@ public class PlayerTower extends Tower {
         super.update(delta);
     }
 
+    public void setWorldBounds(float width, float height) {
+        this.worldWidth = width;
+        this.worldHeight = height;
+    }
+
     @Override
     public void render(SpriteBatch batch) {
         if (currentFrame != null) {
@@ -92,5 +107,17 @@ public class PlayerTower extends Tower {
         } else {
             super.render(batch);
         }
+    }
+
+    private void clampToWorld(Vector2 pos) {
+        if (worldWidth <= 0f || worldHeight <= 0f) {
+            return;
+        }
+        float spriteWidth = currentFrame != null ? currentFrame.getRegionWidth() : size.x;
+        float spriteHeight = currentFrame != null ? currentFrame.getRegionHeight() : size.y;
+        float maxX = Math.max(0f, worldWidth - spriteWidth);
+        float maxY = Math.max(0f, worldHeight - spriteHeight);
+        pos.x = MathUtils.clamp(pos.x, 0f, maxX);
+        pos.y = MathUtils.clamp(pos.y, 0f, maxY);
     }
 }

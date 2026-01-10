@@ -21,18 +21,18 @@ public class InputController extends InputAdapter {
 
     @Override
     public boolean keyDown(int keycode) {
-        if (keycode == Input.Keys.LEFT || keycode == Input.Keys.A) left = true;
+        if (keycode == Input.Keys.LEFT || keycode == Input.Keys.A || keycode == Input.Keys.Q) left = true;
         if (keycode == Input.Keys.RIGHT || keycode == Input.Keys.D) right = true;
-        if (keycode == Input.Keys.UP || keycode == Input.Keys.W) up = true;
+        if (keycode == Input.Keys.UP || keycode == Input.Keys.W || keycode == Input.Keys.Z) up = true;
         if (keycode == Input.Keys.DOWN || keycode == Input.Keys.S) down = true;
         return false;
     }
 
     @Override
     public boolean keyUp(int keycode) {
-        if (keycode == Input.Keys.LEFT || keycode == Input.Keys.A) left = false;
+        if (keycode == Input.Keys.LEFT || keycode == Input.Keys.A || keycode == Input.Keys.Q) left = false;
         if (keycode == Input.Keys.RIGHT || keycode == Input.Keys.D) right = false;
-        if (keycode == Input.Keys.UP || keycode == Input.Keys.W) up = false;
+        if (keycode == Input.Keys.UP || keycode == Input.Keys.W || keycode == Input.Keys.Z) up = false;
         if (keycode == Input.Keys.DOWN || keycode == Input.Keys.S) down = false;
         return false;
     }

@@ -1,17 +1,15 @@
 package io.github.Wasnowl.entities;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.TextureData;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Array;
 
 public class PlayerAnimator {
-    private static final int TILE_SIZE = 32;
-    private static final int FRAME_WIDTH = 32;
-    private static final int FRAME_HEIGHT = 64;
+    private static final int FRAME_COLS = 4;
+    private static final int FRAME_WIDTH = 48;
+    private static final int FRAME_HEIGHT = 48;
     private static final float IDLE_FRAME_DURATION = 0.2f;
     private static final float WALK_FRAME_DURATION = 0.12f;
     private static final float IDLE_EPSILON = 0.01f;
@@ -41,25 +39,24 @@ public class PlayerAnimator {
         walkTexture = new Texture(Gdx.files.internal(walkPath));
         idleTexture = new Texture(Gdx.files.internal(idlePath));
 
-        TextureRegion[] walkDownRow = buildRowFrames(walkTexture, 0);
+        TextureRegion[] walkDownRow = buildRowFrames(walkTexture, 3);
         TextureRegion[] walkLeftRow = buildRowFrames(walkTexture, 2);
-        TextureRegion[] walkUpRow = buildRowFrames(walkTexture, 4);
-        TextureRegion[] idleDownRow = buildRowFrames(idleTexture, 0);
+        TextureRegion[] walkRightRow = buildRowFrames(walkTexture, 1);
+        TextureRegion[] walkUpRow = buildRowFrames(walkTexture, 0);
+        TextureRegion[] idleDownRow = buildRowFrames(idleTexture, 3);
         TextureRegion[] idleLeftRow = buildRowFrames(idleTexture, 2);
-        TextureRegion[] idleUpRow = buildRowFrames(idleTexture, 4);
+        TextureRegion[] idleRightRow = buildRowFrames(idleTexture, 1);
+        TextureRegion[] idleUpRow = buildRowFrames(idleTexture, 0);
 
-        boolean walkCol1Empty = isRegionEmpty(walkTexture, walkDownRow[1]);
-        boolean idleCol1Empty = isRegionEmpty(idleTexture, idleDownRow[1]);
+        idleDown = buildAnimation(IDLE_FRAME_DURATION, idleDownRow);
+        idleLeft = buildAnimation(IDLE_FRAME_DURATION, idleLeftRow);
+        idleUp = buildAnimation(IDLE_FRAME_DURATION, idleUpRow);
+        idleRight = buildAnimation(IDLE_FRAME_DURATION, idleRightRow);
 
-        idleDown = buildIdleDown(idleDownRow, idleCol1Empty);
-        idleLeft = buildIdleLeft(idleLeftRow);
-        idleUp = buildIdleUp(idleUpRow);
-        idleRight = buildFlipped(idleLeft);
-
-        walkDown = buildWalkDown(walkDownRow, walkCol1Empty);
-        walkLeft = buildWalkLeft(walkLeftRow);
-        walkUp = buildWalkUp(walkUpRow);
-        walkRight = buildFlipped(walkLeft);
+        walkDown = buildAnimation(WALK_FRAME_DURATION, walkDownRow);
+        walkLeft = buildAnimation(WALK_FRAME_DURATION, walkLeftRow);
+        walkUp = buildAnimation(WALK_FRAME_DURATION, walkUpRow);
+        walkRight = buildAnimation(WALK_FRAME_DURATION, walkRightRow);
     }
 
     public TextureRegion getFrame(float delta, float vx, float vy) {
@@ -85,39 +82,9 @@ public class PlayerAnimator {
         idleTexture.dispose();
     }
 
-    private Animation<TextureRegion> buildIdleDown(TextureRegion[] row, boolean col1Empty) {
-        if (col1Empty) {
-            return buildAnimation(IDLE_FRAME_DURATION, row[0], row[2]);
-        }
-        return buildAnimation(IDLE_FRAME_DURATION, row[0], row[1], row[2]);
-    }
-
-    private Animation<TextureRegion> buildIdleLeft(TextureRegion[] row) {
-        return buildAnimation(IDLE_FRAME_DURATION, row[0], row[2]);
-    }
-
-    private Animation<TextureRegion> buildIdleUp(TextureRegion[] row) {
-        return buildAnimation(IDLE_FRAME_DURATION, row[0], row[2]);
-    }
-
-    private Animation<TextureRegion> buildWalkDown(TextureRegion[] row, boolean col1Empty) {
-        if (col1Empty) {
-            return buildAnimation(WALK_FRAME_DURATION, row[0], row[2], row[0], row[2]);
-        }
-        return buildAnimation(WALK_FRAME_DURATION, row[0], row[1], row[2]);
-    }
-
-    private Animation<TextureRegion> buildWalkLeft(TextureRegion[] row) {
-        return buildAnimation(WALK_FRAME_DURATION, row[0], row[2], row[0], row[2]);
-    }
-
-    private Animation<TextureRegion> buildWalkUp(TextureRegion[] row) {
-        return buildAnimation(WALK_FRAME_DURATION, row[0], row[2], row[0], row[2]);
-    }
-
     private TextureRegion[] buildRowFrames(Texture texture, int rowFromTop) {
-        TextureRegion[] row = new TextureRegion[3];
-        for (int col = 0; col < 3; col++) {
+        TextureRegion[] row = new TextureRegion[FRAME_COLS];
+        for (int col = 0; col < FRAME_COLS; col++) {
             row[col] = buildFrame(texture, col, rowFromTop);
         }
         return row;
@@ -125,20 +92,8 @@ public class PlayerAnimator {
 
     private TextureRegion buildFrame(Texture texture, int col, int rowFromTop) {
         int x = col * FRAME_WIDTH;
-        int yTop = rowFromTop * TILE_SIZE;
-        int y = texture.getHeight() - yTop - FRAME_HEIGHT;
+        int y = texture.getHeight() - ((rowFromTop + 1) * FRAME_HEIGHT);
         return new TextureRegion(texture, x, y, FRAME_WIDTH, FRAME_HEIGHT);
-    }
-
-    private Animation<TextureRegion> buildFlipped(Animation<TextureRegion> source) {
-        TextureRegion[] frames = source.getKeyFrames();
-        TextureRegion[] flipped = new TextureRegion[frames.length];
-        for (int i = 0; i < frames.length; i++) {
-            TextureRegion region = new TextureRegion(frames[i]);
-            region.flip(true, false);
-            flipped[i] = region;
-        }
-        return buildAnimation(source.getFrameDuration(), flipped);
     }
 
     private Animation<TextureRegion> getAnimation(AnimState state, Direction direction) {
@@ -175,37 +130,5 @@ public class PlayerAnimator {
             array.add(frame);
         }
         return new Animation<>(frameDuration, array, Animation.PlayMode.LOOP);
-    }
-
-    private boolean isRegionEmpty(Texture texture, TextureRegion region) {
-        TextureData data = texture.getTextureData();
-        if (!data.isPrepared()) {
-            data.prepare();
-        }
-        Pixmap pixmap = data.consumePixmap();
-        boolean dispose = data.disposePixmap();
-
-        int startX = region.getRegionX();
-        int startY = region.getRegionY();
-        int width = region.getRegionWidth();
-        int height = region.getRegionHeight();
-        boolean empty = true;
-
-        int step = 2;
-        for (int y = 0; y < height && empty; y += step) {
-            for (int x = 0; x < width; x += step) {
-                int pixel = pixmap.getPixel(startX + x, startY + y);
-                int alpha = (pixel >>> 24) & 0xff;
-                if (alpha != 0) {
-                    empty = false;
-                    break;
-                }
-            }
-        }
-
-        if (dispose) {
-            pixmap.dispose();
-        }
-        return empty;
     }
 }

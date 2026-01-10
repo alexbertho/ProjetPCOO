@@ -205,6 +205,7 @@ public class GameScreen extends ScreenAdapter {
         map = new TmxMapLoader().load(mapPath);
         mapRenderer = new OrthogonalTiledMapRenderer(map, 1f);
         configureViewportForMap();
+        player.setWorldBounds(mapPixelWidth, mapPixelHeight);
         setupBackgroundBlur();
 
         // UI stage for tower menu (use same aspect ratio as the map)

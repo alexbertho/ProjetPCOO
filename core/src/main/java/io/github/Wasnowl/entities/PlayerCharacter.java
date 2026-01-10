@@ -23,16 +23,22 @@ public class PlayerCharacter extends GameObject {
     public void update(float delta) {
         float moveX = 0f;
         float moveY = 0f;
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.Q) || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.A)) {
+        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.LEFT)
+                || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.Q)
+                || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.A)) {
             moveX -= 1f;
         }
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.D)) {
+        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.RIGHT)
+                || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.D)) {
             moveX += 1f;
         }
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.Z) || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.W)) {
+        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.UP)
+                || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.Z)
+                || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.W)) {
             moveY += 1f;
         }
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.S)) {
+        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.DOWN)
+                || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.S)) {
             moveY -= 1f;
         }
 
