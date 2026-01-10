@@ -19,7 +19,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Window;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Slider;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.InputAdapter;
@@ -46,6 +48,8 @@ public class GameScreen extends ScreenAdapter {
     private String mapPath = "maps/BeginningFields.tmx";
     private static final int DEFAULT_WINDOW_WIDTH = 1280;
     private static final int DEFAULT_WINDOW_HEIGHT = 720;
+    private static final String PAUSE_TITLE = "Pause";
+    private static final String OPTIONS_TITLE = "Options";
     private static final String BLUR_VERTEX_SHADER =
         "attribute vec4 a_position;\n" +
         "attribute vec4 a_color;\n" +
@@ -106,6 +110,13 @@ public class GameScreen extends ScreenAdapter {
     private Label balanceLabel;
     private Label costLabel;
     private TextButton nextWaveButton;
+    private TextButton towersButton;
+    private Table hudTable;
+    private Table towerButtonTable;
+    private Table bottomRightTable;
+    private Window pauseWindow;
+    private Window pauseOptionsWindow;
+    private boolean paused = false;
 
     private PlayerTower player;
     private Array<Tower> towers;
@@ -206,7 +217,7 @@ public class GameScreen extends ScreenAdapter {
         costLabel = new Label("", new Label.LabelStyle(hudFont, Color.YELLOW));
 
         // Top-left HUD table
-        Table hudTable = new Table();
+        hudTable = new Table();
         hudTable.setFillParent(true);
         hudTable.top().left();
         hudTable.add(balanceLabel).pad(6).row();
@@ -214,17 +225,20 @@ public class GameScreen extends ScreenAdapter {
         uiStage.addActor(hudTable);
 
         // Bottom-center button to open tower menu
-        Table table = new Table();
-        table.setFillParent(true);
-        uiStage.addActor(table);
+        towerButtonTable = new Table();
+        towerButtonTable.setFillParent(true);
+        uiStage.addActor(towerButtonTable);
 
-        TextButton towersButton = new TextButton("Towers", uiSkin);
-        table.bottom().add(towersButton).padBottom(8);
+        towersButton = new TextButton("Towers", uiSkin);
+        towerButtonTable.bottom().add(towersButton).padBottom(8);
 
         // Tower selection window (created when needed)
         towersButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+                if (paused) {
+                    return;
+                }
                 toggleTowerMenu();
             }
         });
@@ -239,17 +253,20 @@ public class GameScreen extends ScreenAdapter {
                 }
             }
         });
-        Table bottomRight = new Table();
-        bottomRight.setFillParent(true);
-        bottomRight.bottom().right();
-        bottomRight.add(nextWaveButton).pad(8);
-        uiStage.addActor(bottomRight);
+        bottomRightTable = new Table();
+        bottomRightTable.setFillParent(true);
+        bottomRightTable.bottom().right();
+        bottomRightTable.add(nextWaveButton).pad(8);
+        uiStage.addActor(bottomRightTable);
 
         inputMultiplexer = new com.badlogic.gdx.InputMultiplexer();
         inputMultiplexer.addProcessor(uiStage);
         inputMultiplexer.addProcessor(new InputAdapter() {
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+                if (paused) {
+                    return false;
+                }
                 // Left click placement
                 if (placingPreview && button == com.badlogic.gdx.Input.Buttons.LEFT) {
                     Vector3 tmp = new Vector3(screenX, screenY, 0);
@@ -284,11 +301,8 @@ public class GameScreen extends ScreenAdapter {
 
             @Override
             public boolean keyDown(int keycode) {
-                // Cancel with ESC while placing
-                if (placingPreview && keycode == com.badlogic.gdx.Input.Keys.ESCAPE) {
-                    placingPreview = false;
-                    previewTowerType = null;
-                    costLabel.setText("");
+                if (keycode == com.badlogic.gdx.Input.Keys.ESCAPE) {
+                    togglePause();
                     return true;
                 }
                 return false;
@@ -310,7 +324,9 @@ public class GameScreen extends ScreenAdapter {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         renderBackgroundBlur();
-        handleCameraInput(delta);
+        if (!paused) {
+            handleCameraInput(delta);
+        }
 
         viewport.apply();
         camera.update();
@@ -320,15 +336,17 @@ public class GameScreen extends ScreenAdapter {
         // Rendre les object layers (buildings, trees, props, etc.)
         renderMapObjectLayer(batch);
 
-        // Update
-        waveManager.update(delta);
-        // Activer/désactiver le bouton Next Wave selon l'état de la vague
-        if (nextWaveButton != null) {
-            nextWaveButton.setDisabled(!waveManager.isWaveFinished());
+        if (!paused) {
+            // Update
+            waveManager.update(delta);
+            // Activer/désactiver le bouton Next Wave selon l'état de la vague
+            if (nextWaveButton != null) {
+                nextWaveButton.setDisabled(!waveManager.isWaveFinished());
+            }
+            player.update(delta);
+            for (Tower t : towers) t.update(delta);
+            projectileManager.update(delta);  // Utiliser le ProjectileManager
         }
-        player.update(delta);
-        for (Tower t : towers) t.update(delta);
-        projectileManager.update(delta);  // Utiliser le ProjectileManager
 
         // Render
         batch.setProjectionMatrix(camera.combined);
@@ -342,7 +360,7 @@ public class GameScreen extends ScreenAdapter {
         // Projectiles are now rendered by their Sprite/Animation via ProjectileManager
 
         // Render preview (using ShapeRenderer)
-        if (placingPreview && previewTowerType != null) {
+        if (!paused && placingPreview && previewTowerType != null) {
             Vector3 mouse = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
             viewport.unproject(mouse);
             previewPosition.set(mouse.x, mouse.y);
@@ -378,6 +396,8 @@ public class GameScreen extends ScreenAdapter {
         if (viewport != null) viewport.update(width, height);
         if (uiStage != null) uiStage.getViewport().update(width, height, true);
         if (screenCamera != null) screenCamera.setToOrtho(false, width, height);
+        centerWindow(pauseWindow);
+        centerWindow(pauseOptionsWindow);
     }
 
     @Override
@@ -603,5 +623,128 @@ public class GameScreen extends ScreenAdapter {
         batch.draw(backgroundRegion, drawX, drawY, drawWidth, drawHeight);
         batch.end();
         batch.setShader(null);
+    }
+
+    private void togglePause() {
+        paused = !paused;
+        if (paused) {
+            if (placingPreview) {
+                placingPreview = false;
+                previewTowerType = null;
+                costLabel.setText("");
+            }
+            if (showTowerMenu) {
+                toggleTowerMenu();
+            }
+            showPauseWindow();
+            setGameplayUiVisible(false);
+        } else {
+            hidePauseWindows();
+            setGameplayUiVisible(true);
+        }
+    }
+
+    private void showPauseWindow() {
+        if (pauseWindow != null) {
+            pauseWindow.setVisible(true);
+            return;
+        }
+
+        pauseWindow = new Window(PAUSE_TITLE, uiSkin);
+        pauseWindow.defaults().pad(6);
+
+        TextButton resumeButton = new TextButton("Reprendre", uiSkin);
+        TextButton optionsButton = new TextButton(OPTIONS_TITLE, uiSkin);
+
+        resumeButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                togglePause();
+            }
+        });
+
+        optionsButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                togglePauseOptionsWindow();
+            }
+        });
+
+        pauseWindow.add(resumeButton).width(200).row();
+        pauseWindow.add(optionsButton).width(200).row();
+        pauseWindow.pack();
+        centerWindow(pauseWindow);
+        uiStage.addActor(pauseWindow);
+    }
+
+    private void hidePauseWindows() {
+        if (pauseOptionsWindow != null) {
+            pauseOptionsWindow.remove();
+            pauseOptionsWindow = null;
+        }
+        if (pauseWindow != null) {
+            pauseWindow.remove();
+            pauseWindow = null;
+        }
+    }
+
+    private void togglePauseOptionsWindow() {
+        if (pauseOptionsWindow != null) {
+            pauseOptionsWindow.remove();
+            pauseOptionsWindow = null;
+            return;
+        }
+
+        pauseOptionsWindow = new Window(OPTIONS_TITLE, uiSkin);
+        pauseOptionsWindow.defaults().pad(6);
+
+        Label volumeLabel = new Label("Volume", uiSkin);
+        Slider volumeSlider = new Slider(0f, 1f, 0.01f, false, uiSkin);
+        if (game.getMusicManager() != null) {
+            volumeSlider.setValue(game.getMusicManager().getVolume());
+        }
+
+        volumeSlider.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                if (game.getMusicManager() != null) {
+                    game.getMusicManager().setVolume(volumeSlider.getValue());
+                }
+            }
+        });
+
+        TextButton closeButton = new TextButton("Fermer", uiSkin);
+        closeButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                togglePauseOptionsWindow();
+            }
+        });
+
+        pauseOptionsWindow.add(volumeLabel);
+        pauseOptionsWindow.add(volumeSlider).width(220);
+        pauseOptionsWindow.row();
+        pauseOptionsWindow.add(closeButton).colspan(2).padTop(6);
+        pauseOptionsWindow.pack();
+        centerWindow(pauseOptionsWindow);
+        uiStage.addActor(pauseOptionsWindow);
+    }
+
+    private void setGameplayUiVisible(boolean visible) {
+        if (hudTable != null) hudTable.setVisible(visible);
+        if (towerButtonTable != null) towerButtonTable.setVisible(visible);
+        if (bottomRightTable != null) bottomRightTable.setVisible(visible);
+        if (nextWaveButton != null) nextWaveButton.setDisabled(!visible);
+        if (towersButton != null) towersButton.setDisabled(!visible);
+    }
+
+    private void centerWindow(Window window) {
+        if (window == null || uiStage == null) {
+            return;
+        }
+        window.setPosition(
+            uiStage.getViewport().getWorldWidth() / 2f - window.getWidth() / 2f,
+            uiStage.getViewport().getWorldHeight() / 2f - window.getHeight() / 2f
+        );
     }
 }
