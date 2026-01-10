@@ -159,6 +159,7 @@ public class GameScreen extends ScreenAdapter {
         player = new PlayerTower(100, 100, 150, 1f, enemies, projectiles, portals, game);
         // Currency manager
         currencyManager = new CurrencyManager(50); // monnaie de départ
+        waveManager = new WaveManager(enemies, currencyManager);
 
         // ShapeRenderer for preview
         shapeRenderer = new ShapeRenderer();
@@ -311,7 +312,6 @@ public class GameScreen extends ScreenAdapter {
 
         Gdx.input.setInputProcessor(inputMultiplexer);
 
-        waveManager = new WaveManager(enemies, currencyManager);
         // Callback pour mettre à jour l'UI quand l'argent change
         waveManager.setOnMoneyChanged(() -> {
             balanceLabel.setText("Gold: " + currencyManager.getBalance());
@@ -338,10 +338,12 @@ public class GameScreen extends ScreenAdapter {
 
         if (!paused) {
             // Update
-            waveManager.update(delta);
-            // Activer/désactiver le bouton Next Wave selon l'état de la vague
-            if (nextWaveButton != null) {
-                nextWaveButton.setDisabled(!waveManager.isWaveFinished());
+            if (waveManager != null) {
+                waveManager.update(delta);
+                // Activer/désactiver le bouton Next Wave selon l'état de la vague
+                if (nextWaveButton != null) {
+                    nextWaveButton.setDisabled(!waveManager.isWaveFinished());
+                }
             }
             player.update(delta);
             for (Tower t : towers) t.update(delta);
@@ -379,8 +381,10 @@ public class GameScreen extends ScreenAdapter {
         }
 
         // Draw UI on top
-        uiStage.act(delta);
-        uiStage.draw();
+        if (uiStage != null) {
+            uiStage.act(delta);
+            uiStage.draw();
+        }
     }
 
     private void handleCameraInput(float delta) {
