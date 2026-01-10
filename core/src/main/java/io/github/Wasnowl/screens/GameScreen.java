@@ -6,7 +6,18 @@ import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.maps.MapLayer;
+import com.badlogic.gdx.maps.MapObject;
+import com.badlogic.gdx.maps.MapObjects;
+import com.badlogic.gdx.maps.objects.CircleMapObject;
+import com.badlogic.gdx.maps.objects.EllipseMapObject;
+import com.badlogic.gdx.maps.objects.PolygonMapObject;
+import com.badlogic.gdx.maps.objects.PolylineMapObject;
+import com.badlogic.gdx.maps.objects.RectangleMapObject;
+import com.badlogic.gdx.maps.objects.TextureMapObject;
 import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TiledMapTile;
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Vector2;
@@ -93,6 +104,7 @@ public class GameScreen extends ScreenAdapter {
     private SpriteBatch batch;
     private int mapPixelWidth;
     private int mapPixelHeight;
+    private Array<Rectangle> collisionRects;
     private FrameBuffer backgroundBuffer;
     private TextureRegion backgroundRegion;
     private ShaderProgram blurShader;
@@ -205,7 +217,14 @@ public class GameScreen extends ScreenAdapter {
         map = new TmxMapLoader().load(mapPath);
         mapRenderer = new OrthogonalTiledMapRenderer(map, 1f);
         configureViewportForMap();
+        collisionRects = buildCollisionRects();
+        player.setCollisionRects(collisionRects);
         player.setWorldBounds(mapPixelWidth, mapPixelHeight);
+        int tileWidth = map.getProperties().get("tilewidth", Integer.class);
+        int tileHeight = map.getProperties().get("tileheight", Integer.class);
+        float step = Math.min(tileWidth, tileHeight);
+        float searchRadius = Math.max(mapPixelWidth, mapPixelHeight);
+        player.setPositionSafe(mapPixelWidth * 0.5f, mapPixelHeight * 0.5f, searchRadius, step);
         setupBackgroundBlur();
 
         // UI stage for tower menu (use same aspect ratio as the map)
@@ -628,6 +647,108 @@ public class GameScreen extends ScreenAdapter {
         batch.draw(backgroundRegion, drawX, drawY, drawWidth, drawHeight);
         batch.end();
         batch.setShader(null);
+    }
+
+    private Array<Rectangle> buildCollisionRects() {
+        Array<Rectangle> rects = new Array<>();
+        int tileWidth = map.getProperties().get("tilewidth", Integer.class);
+        int tileHeight = map.getProperties().get("tileheight", Integer.class);
+
+        for (MapLayer layer : map.getLayers()) {
+            if (layer instanceof TiledMapTileLayer) {
+                TiledMapTileLayer tileLayer = (TiledMapTileLayer) layer;
+                for (int x = 0; x < tileLayer.getWidth(); x++) {
+                    for (int y = 0; y < tileLayer.getHeight(); y++) {
+                        TiledMapTileLayer.Cell cell = tileLayer.getCell(x, y);
+                        if (cell == null || cell.getTile() == null) {
+                            continue;
+                        }
+                        addTileCollisionRects(cell.getTile(), x * tileWidth, y * tileHeight, rects);
+                    }
+                }
+            } else {
+                MapObjects objects = layer.getObjects();
+                if (objects == null) {
+                    continue;
+                }
+                for (MapObject object : objects) {
+                    addObjectCollisionRects(object, rects);
+                }
+            }
+        }
+
+        return rects;
+    }
+
+    private void addObjectCollisionRects(MapObject object, Array<Rectangle> rects) {
+        Object gidObj = object.getProperties().get("gid");
+        if (gidObj instanceof Number) {
+            int gid = ((Number) gidObj).intValue();
+            TiledMapTile tile = map.getTileSets().getTile(gid);
+            if (tile != null && tile.getObjects() != null && tile.getObjects().getCount() > 0) {
+                float objX = getFloatProperty(object, "x");
+                float objY = getFloatProperty(object, "y");
+                addTileCollisionRects(tile, objX, objY, rects);
+            }
+            return;
+        }
+
+        Rectangle bounds = getObjectBounds(object);
+        if (bounds != null && bounds.width > 0f && bounds.height > 0f) {
+            rects.add(new Rectangle(bounds));
+        }
+    }
+
+    private void addTileCollisionRects(TiledMapTile tile, float baseX, float baseY, Array<Rectangle> rects) {
+        MapObjects objects = tile.getObjects();
+        if (objects == null || objects.getCount() == 0) {
+            return;
+        }
+        for (MapObject object : objects) {
+            Rectangle bounds = getObjectBounds(object);
+            if (bounds == null || bounds.width <= 0f || bounds.height <= 0f) {
+                continue;
+            }
+            rects.add(new Rectangle(baseX + bounds.x, baseY + bounds.y, bounds.width, bounds.height));
+        }
+    }
+
+    private float getFloatProperty(MapObject object, String key) {
+        Object value = object.getProperties().get(key);
+        if (value instanceof Number) {
+            return ((Number) value).floatValue();
+        }
+        return 0f;
+    }
+
+    private Rectangle getObjectBounds(MapObject object) {
+        if (object instanceof RectangleMapObject) {
+            return new Rectangle(((RectangleMapObject) object).getRectangle());
+        }
+        if (object instanceof PolygonMapObject) {
+            return ((PolygonMapObject) object).getPolygon().getBoundingRectangle();
+        }
+        if (object instanceof PolylineMapObject) {
+            return ((PolylineMapObject) object).getPolyline().getBoundingRectangle();
+        }
+        if (object instanceof EllipseMapObject) {
+            com.badlogic.gdx.math.Ellipse ellipse = ((EllipseMapObject) object).getEllipse();
+            return new Rectangle(ellipse.x, ellipse.y, ellipse.width, ellipse.height);
+        }
+        if (object instanceof CircleMapObject) {
+            com.badlogic.gdx.math.Circle circle = ((CircleMapObject) object).getCircle();
+            float size = circle.radius * 2f;
+            return new Rectangle(circle.x - circle.radius, circle.y - circle.radius, size, size);
+        }
+        if (object instanceof TextureMapObject) {
+            TextureMapObject textureObject = (TextureMapObject) object;
+            float width = textureObject.getTextureRegion() != null ? textureObject.getTextureRegion().getRegionWidth() : 0f;
+            float height = textureObject.getTextureRegion() != null ? textureObject.getTextureRegion().getRegionHeight() : 0f;
+            if (width > 0f && height > 0f) {
+                return new Rectangle(textureObject.getX(), textureObject.getY(), width, height);
+            }
+        }
+        return null;
     }
 
     private void togglePause() {

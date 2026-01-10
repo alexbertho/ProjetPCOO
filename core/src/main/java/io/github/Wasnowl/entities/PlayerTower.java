@@ -13,12 +13,17 @@ import io.github.Wasnowl.entities.Portal;
 
 public class PlayerTower extends Tower {
     private static final float MOVE_SPEED = 180f;
+    private static final float HITBOX_WIDTH = 16f;
+    private static final float HITBOX_HEIGHT = 16f;
     private Array<Portal> portals;
     private final Vector2 velocity = new Vector2();
+    private final Vector2 candidate = new Vector2();
+    private final Rectangle hitbox = new Rectangle();
     private PlayerAnimator animator;
     private TextureRegion currentFrame;
     private float worldWidth = -1f;
     private float worldHeight = -1f;
+    private Array<Rectangle> collisionRects;
 
     private GameMain game;
 
@@ -87,8 +92,20 @@ public class PlayerTower extends Tower {
         }
 
         if (velocity.len2() > 0f) {
-            Vector2 next = position.cpy().add(velocity.x * delta, velocity.y * delta);
-            move(next);
+            float nextX = position.x + velocity.x * delta;
+            float nextY = position.y + velocity.y * delta;
+            float resolvedX = position.x;
+            float resolvedY = position.y;
+
+            if (velocity.x != 0f && !collidesAt(nextX, position.y)) {
+                resolvedX = nextX;
+            }
+            if (velocity.y != 0f && !collidesAt(resolvedX, nextY)) {
+                resolvedY = nextY;
+            }
+
+            candidate.set(resolvedX, resolvedY);
+            move(candidate);
         }
 
         currentFrame = animator.getFrame(delta, velocity.x, velocity.y);
@@ -98,6 +115,33 @@ public class PlayerTower extends Tower {
     public void setWorldBounds(float width, float height) {
         this.worldWidth = width;
         this.worldHeight = height;
+    }
+
+    public void setCollisionRects(Array<Rectangle> rects) {
+        this.collisionRects = rects;
+    }
+
+    public void setPositionSafe(float x, float y, float searchRadius, float step) {
+        candidate.set(x, y);
+        clampToWorld(candidate);
+        if (!collidesAt(candidate.x, candidate.y)) {
+            position.set(candidate);
+            return;
+        }
+
+        float maxRadius = Math.max(step, searchRadius);
+        for (float r = step; r <= maxRadius; r += step) {
+            for (float dx = -r; dx <= r; dx += step) {
+                if (trySetPosition(x + dx, y + r)) return;
+                if (trySetPosition(x + dx, y - r)) return;
+            }
+            for (float dy = -r + step; dy <= r - step; dy += step) {
+                if (trySetPosition(x + r, y + dy)) return;
+                if (trySetPosition(x - r, y + dy)) return;
+            }
+        }
+
+        position.set(candidate);
     }
 
     @Override
@@ -119,5 +163,38 @@ public class PlayerTower extends Tower {
         float maxY = Math.max(0f, worldHeight - spriteHeight);
         pos.x = MathUtils.clamp(pos.x, 0f, maxX);
         pos.y = MathUtils.clamp(pos.y, 0f, maxY);
+    }
+
+    private boolean trySetPosition(float x, float y) {
+        candidate.set(x, y);
+        clampToWorld(candidate);
+        if (!collidesAt(candidate.x, candidate.y)) {
+            position.set(candidate);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean collidesAt(float x, float y) {
+        if (collisionRects == null || collisionRects.size == 0) {
+            return false;
+        }
+        updateHitbox(x, y);
+        for (Rectangle rect : collisionRects) {
+            if (hitbox.overlaps(rect)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void updateHitbox(float x, float y) {
+        float spriteWidth = currentFrame != null ? currentFrame.getRegionWidth() : size.x;
+        float spriteHeight = currentFrame != null ? currentFrame.getRegionHeight() : size.y;
+        float hitWidth = Math.min(HITBOX_WIDTH, spriteWidth);
+        float hitHeight = Math.min(HITBOX_HEIGHT, spriteHeight);
+        float hitX = x + (spriteWidth - hitWidth) * 0.5f;
+        float hitY = y;
+        hitbox.set(hitX, hitY, hitWidth, hitHeight);
     }
 }
