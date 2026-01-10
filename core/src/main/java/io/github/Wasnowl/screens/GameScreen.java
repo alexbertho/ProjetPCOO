@@ -22,7 +22,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -37,19 +36,62 @@ import io.github.Wasnowl.managers.ProjectileManager;
 import io.github.Wasnowl.builders.TowerBuilder;
 import io.github.Wasnowl.managers.CurrencyManager;
 import io.github.Wasnowl.entities.TowerType;
+import com.badlogic.gdx.graphics.glutils.FrameBuffer;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 public class GameScreen extends ScreenAdapter {
     private final GameMain game;
     private String mapPath = "maps/BeginningFields.tmx";
+    private static final int DEFAULT_WINDOW_WIDTH = 1280;
+    private static final int DEFAULT_WINDOW_HEIGHT = 720;
+    private static final String BLUR_VERTEX_SHADER =
+        "attribute vec4 a_position;\n" +
+        "attribute vec4 a_color;\n" +
+        "attribute vec2 a_texCoord0;\n" +
+        "uniform mat4 u_projTrans;\n" +
+        "varying vec4 v_color;\n" +
+        "varying vec2 v_texCoords;\n" +
+        "void main() {\n" +
+        "    v_color = a_color;\n" +
+        "    v_texCoords = a_texCoord0;\n" +
+        "    gl_Position = u_projTrans * a_position;\n" +
+        "}\n";
+    private static final String BLUR_FRAGMENT_SHADER =
+        "#ifdef GL_ES\n" +
+        "precision mediump float;\n" +
+        "#endif\n" +
+        "varying vec4 v_color;\n" +
+        "varying vec2 v_texCoords;\n" +
+        "uniform sampler2D u_texture;\n" +
+        "uniform vec2 u_texelSize;\n" +
+        "void main() {\n" +
+        "    vec4 sum = vec4(0.0);\n" +
+        "    sum += texture2D(u_texture, v_texCoords) * 0.16;\n" +
+        "    sum += texture2D(u_texture, v_texCoords + vec2(u_texelSize.x, 0.0)) * 0.12;\n" +
+        "    sum += texture2D(u_texture, v_texCoords - vec2(u_texelSize.x, 0.0)) * 0.12;\n" +
+        "    sum += texture2D(u_texture, v_texCoords + vec2(0.0, u_texelSize.y)) * 0.12;\n" +
+        "    sum += texture2D(u_texture, v_texCoords - vec2(0.0, u_texelSize.y)) * 0.12;\n" +
+        "    sum += texture2D(u_texture, v_texCoords + u_texelSize) * 0.09;\n" +
+        "    sum += texture2D(u_texture, v_texCoords - u_texelSize) * 0.09;\n" +
+        "    sum += texture2D(u_texture, v_texCoords + vec2(u_texelSize.x, -u_texelSize.y)) * 0.09;\n" +
+        "    sum += texture2D(u_texture, v_texCoords + vec2(-u_texelSize.x, u_texelSize.y)) * 0.09;\n" +
+        "    gl_FragColor = v_color * sum;\n" +
+        "}\n";
 
 
     private OrthographicCamera camera;
+    private OrthographicCamera screenCamera;
     private Viewport viewport;
     private TiledMap map;
     private OrthogonalTiledMapRenderer mapRenderer;
     private SpriteBatch batch;
     private int mapPixelWidth;
     private int mapPixelHeight;
+    private FrameBuffer backgroundBuffer;
+    private TextureRegion backgroundRegion;
+    private ShaderProgram blurShader;
     // UI
     private Stage uiStage;
     private Skin uiSkin;
@@ -107,9 +149,56 @@ public class GameScreen extends ScreenAdapter {
         // Currency manager
         currencyManager = new CurrencyManager(50); // monnaie de départ
 
-        // UI stage for tower menu
+        // ShapeRenderer for preview
+        shapeRenderer = new ShapeRenderer();
+
+        // Charger les sprites de projectiles (si présents) depuis assets/projectiles/
+        try {
+            com.badlogic.gdx.graphics.Texture tSimple = null;
+            com.badlogic.gdx.graphics.Texture tAoe = null;
+            com.badlogic.gdx.graphics.Texture tRic = null;
+            if (Gdx.files.internal("projectiles/simple.png").exists()) {
+                tSimple = new com.badlogic.gdx.graphics.Texture(Gdx.files.internal("projectiles/simple.png"));
+            }
+            if (Gdx.files.internal("projectiles/aoe.png").exists()) {
+                tAoe = new com.badlogic.gdx.graphics.Texture(Gdx.files.internal("projectiles/aoe.png"));
+            }
+            if (Gdx.files.internal("projectiles/ricochet.png").exists()) {
+                tRic = new com.badlogic.gdx.graphics.Texture(Gdx.files.internal("projectiles/ricochet.png"));
+            }
+
+            float frameDuration = 0.12f; // vitesse d'animation
+            // helper to build animation from a horizontal 2-frame spritesheet
+            java.util.function.BiConsumer<com.badlogic.gdx.graphics.Texture, io.github.Wasnowl.entities.ProjectileType> buildAnim = (tex, ptype) -> {
+                if (tex == null) return;
+                int frameCount = 2;
+                int fw = tex.getWidth() / frameCount;
+                int fh = tex.getHeight();
+                com.badlogic.gdx.graphics.g2d.TextureRegion[][] tmp = com.badlogic.gdx.graphics.g2d.TextureRegion.split(tex, fw, fh);
+                com.badlogic.gdx.utils.Array<com.badlogic.gdx.graphics.g2d.TextureRegion> frames = new com.badlogic.gdx.utils.Array<>();
+                for (int i = 0; i < frameCount; i++) frames.add(tmp[0][i]);
+                com.badlogic.gdx.graphics.g2d.Animation<com.badlogic.gdx.graphics.g2d.TextureRegion> anim = new com.badlogic.gdx.graphics.g2d.Animation<>(frameDuration, frames, com.badlogic.gdx.graphics.g2d.Animation.PlayMode.LOOP);
+                io.github.Wasnowl.managers.ProjectileAssetManager.getInstance().setProjectileAnimation(ptype, anim);
+            };
+
+            buildAnim.accept(tSimple, io.github.Wasnowl.entities.ProjectileType.SIMPLE);
+            buildAnim.accept(tAoe, io.github.Wasnowl.entities.ProjectileType.AOE_STRONG);
+            buildAnim.accept(tRic, io.github.Wasnowl.entities.ProjectileType.RICOCHET);
+
+        } catch (Exception e) {
+            Gdx.app.log("ASSETS", "Failed to load projectile sprites: " + e.getMessage());
+        }
+
+        // Charger la carte depuis assets/maps/
+        map = new TmxMapLoader().load(mapPath);
+        mapRenderer = new OrthogonalTiledMapRenderer(map, 1f);
+        configureViewportForMap();
+        setupBackgroundBlur();
+
+        // UI stage for tower menu (use same aspect ratio as the map)
         uiSkin = new Skin(Gdx.files.internal("uiskin.json"));
-        uiStage = new Stage(new ScreenViewport());
+        uiStage = new Stage(new FitViewport(mapPixelWidth, mapPixelHeight));
+        uiStage.getViewport().update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
 
         // HUD font and labels
         hudFont = new BitmapFont(Gdx.files.internal("default.fnt"));
@@ -156,10 +245,6 @@ public class GameScreen extends ScreenAdapter {
         bottomRight.add(nextWaveButton).pad(8);
         uiStage.addActor(bottomRight);
 
-        // ShapeRenderer for preview
-        shapeRenderer = new ShapeRenderer();
-
-        // Input multiplexer: UI stage first, then game input adapter
         inputMultiplexer = new com.badlogic.gdx.InputMultiplexer();
         inputMultiplexer.addProcessor(uiStage);
         inputMultiplexer.addProcessor(new InputAdapter() {
@@ -217,49 +302,6 @@ public class GameScreen extends ScreenAdapter {
         waveManager.setOnMoneyChanged(() -> {
             balanceLabel.setText("Gold: " + currencyManager.getBalance());
         });
-
-        // Charger les sprites de projectiles (si présents) depuis assets/projectiles/
-        try {
-            com.badlogic.gdx.graphics.Texture tSimple = null;
-            com.badlogic.gdx.graphics.Texture tAoe = null;
-            com.badlogic.gdx.graphics.Texture tRic = null;
-            if (Gdx.files.internal("projectiles/simple.png").exists()) {
-                tSimple = new com.badlogic.gdx.graphics.Texture(Gdx.files.internal("projectiles/simple.png"));
-            }
-            if (Gdx.files.internal("projectiles/aoe.png").exists()) {
-                tAoe = new com.badlogic.gdx.graphics.Texture(Gdx.files.internal("projectiles/aoe.png"));
-            }
-            if (Gdx.files.internal("projectiles/ricochet.png").exists()) {
-                tRic = new com.badlogic.gdx.graphics.Texture(Gdx.files.internal("projectiles/ricochet.png"));
-            }
-
-            float frameDuration = 0.12f; // vitesse d'animation
-            // helper to build animation from a horizontal 2-frame spritesheet
-            java.util.function.BiConsumer<com.badlogic.gdx.graphics.Texture, io.github.Wasnowl.entities.ProjectileType> buildAnim = (tex, ptype) -> {
-                if (tex == null) return;
-                int frameCount = 2;
-                int fw = tex.getWidth() / frameCount;
-                int fh = tex.getHeight();
-                com.badlogic.gdx.graphics.g2d.TextureRegion[][] tmp = com.badlogic.gdx.graphics.g2d.TextureRegion.split(tex, fw, fh);
-                com.badlogic.gdx.utils.Array<com.badlogic.gdx.graphics.g2d.TextureRegion> frames = new com.badlogic.gdx.utils.Array<>();
-                for (int i = 0; i < frameCount; i++) frames.add(tmp[0][i]);
-                com.badlogic.gdx.graphics.g2d.Animation<com.badlogic.gdx.graphics.g2d.TextureRegion> anim = new com.badlogic.gdx.graphics.g2d.Animation<>(frameDuration, frames, com.badlogic.gdx.graphics.g2d.Animation.PlayMode.LOOP);
-                io.github.Wasnowl.managers.ProjectileAssetManager.getInstance().setProjectileAnimation(ptype, anim);
-            };
-
-            buildAnim.accept(tSimple, io.github.Wasnowl.entities.ProjectileType.SIMPLE);
-            buildAnim.accept(tAoe, io.github.Wasnowl.entities.ProjectileType.AOE_STRONG);
-            buildAnim.accept(tRic, io.github.Wasnowl.entities.ProjectileType.RICOCHET);
-
-        } catch (Exception e) {
-            Gdx.app.log("ASSETS", "Failed to load projectile sprites: " + e.getMessage());
-        }
-
-        // Charger la carte depuis assets/maps/
-        map = new TmxMapLoader().load(mapPath);
-        mapRenderer = new OrthogonalTiledMapRenderer(map, 1f);
-        configureViewportForMap();
-
     }
 
     @Override
@@ -267,8 +309,10 @@ public class GameScreen extends ScreenAdapter {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        renderBackgroundBlur();
         handleCameraInput(delta);
 
+        viewport.apply();
         camera.update();
         mapRenderer.setView(camera);
         mapRenderer.render();
@@ -333,6 +377,7 @@ public class GameScreen extends ScreenAdapter {
     public void resize(int width, int height) {
         if (viewport != null) viewport.update(width, height);
         if (uiStage != null) uiStage.getViewport().update(width, height, true);
+        if (screenCamera != null) screenCamera.setToOrtho(false, width, height);
     }
 
     @Override
@@ -344,6 +389,8 @@ public class GameScreen extends ScreenAdapter {
         if (uiSkin != null) uiSkin.dispose();
         if (shapeRenderer != null) shapeRenderer.dispose();
         if (hudFont != null) hudFont.dispose();
+        if (backgroundBuffer != null) backgroundBuffer.dispose();
+        if (blurShader != null) blurShader.dispose();
     }
 
     private void toggleTowerMenu() {
@@ -489,10 +536,72 @@ public class GameScreen extends ScreenAdapter {
 
         camera = new OrthographicCamera();
         viewport = new FitViewport(mapPixelWidth, mapPixelHeight, camera);
-        viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
 
         if (!Gdx.graphics.isFullscreen()) {
-            Gdx.graphics.setWindowedMode(mapPixelWidth, mapPixelHeight);
+            int windowWidth = Math.max(DEFAULT_WINDOW_WIDTH, mapPixelWidth);
+            int windowHeight = Math.max(DEFAULT_WINDOW_HEIGHT, mapPixelHeight);
+            Gdx.graphics.setWindowedMode(windowWidth, windowHeight);
         }
+        viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
+    }
+
+    private void setupBackgroundBlur() {
+        if (mapPixelWidth <= 0 || mapPixelHeight <= 0) {
+            return;
+        }
+
+        backgroundBuffer = new FrameBuffer(Pixmap.Format.RGBA8888, mapPixelWidth, mapPixelHeight, false);
+        backgroundBuffer.begin();
+        Gdx.gl.glViewport(0, 0, mapPixelWidth, mapPixelHeight);
+        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+        OrthographicCamera bgCamera = new OrthographicCamera();
+        bgCamera.setToOrtho(false, mapPixelWidth, mapPixelHeight);
+        mapRenderer.setView(bgCamera);
+        mapRenderer.render();
+        backgroundBuffer.end();
+
+        backgroundRegion = new TextureRegion(backgroundBuffer.getColorBufferTexture());
+        backgroundRegion.flip(false, true);
+
+        blurShader = new ShaderProgram(BLUR_VERTEX_SHADER, BLUR_FRAGMENT_SHADER);
+        if (!blurShader.isCompiled()) {
+            Gdx.app.log("SHADER", "Blur shader compile error: " + blurShader.getLog());
+            blurShader = null;
+        }
+
+        screenCamera = new OrthographicCamera();
+        screenCamera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+    }
+
+    private void renderBackgroundBlur() {
+        if (backgroundRegion == null || blurShader == null) {
+            return;
+        }
+
+        float screenWidth = Gdx.graphics.getWidth();
+        float screenHeight = Gdx.graphics.getHeight();
+        Gdx.gl.glViewport(0, 0, (int) screenWidth, (int) screenHeight);
+        screenCamera.setToOrtho(false, screenWidth, screenHeight);
+        screenCamera.update();
+
+        batch.setProjectionMatrix(screenCamera.combined);
+        batch.setShader(blurShader);
+        batch.begin();
+        blurShader.setUniformf(
+            "u_texelSize",
+            1f / backgroundRegion.getTexture().getWidth(),
+            1f / backgroundRegion.getTexture().getHeight()
+        );
+
+        float scale = Math.max(screenWidth / mapPixelWidth, screenHeight / mapPixelHeight);
+        float drawWidth = mapPixelWidth * scale;
+        float drawHeight = mapPixelHeight * scale;
+        float drawX = (screenWidth - drawWidth) / 2f;
+        float drawY = (screenHeight - drawHeight) / 2f;
+        batch.draw(backgroundRegion, drawX, drawY, drawWidth, drawHeight);
+        batch.end();
+        batch.setShader(null);
     }
 }
