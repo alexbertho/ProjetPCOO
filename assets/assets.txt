@@ -335,6 +335,8 @@ maps/Rules/RockSlopes_Rules.tmx
 maps/rules.txt
 musique/1.mp3
 musique/README.txt
+player/Char.png
+player/Char_Idle.png
 towers/COUPON.pdf
 towers/COUPON.png
 towers/Font.png
