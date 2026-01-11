@@ -152,8 +152,6 @@ public class GameScreen extends ScreenAdapter {
 
     @Override
     public void show() {
-    // Charger les 27 sprites de flèches orientées (arrow projectiles)
-    io.github.Wasnowl.managers.ProjectileAssetManager.getInstance().loadArrowFrames();
 
         batch = new SpriteBatch();
 
@@ -194,8 +192,7 @@ public class GameScreen extends ScreenAdapter {
                 tRic = new com.badlogic.gdx.graphics.Texture(Gdx.files.internal("projectiles/ricochet.png"));
             }
 
-            float frameDuration = 0.12f; // vitesse d'animation
-            // helper to build animation from a horizontal 2-frame spritesheet
+            float frameDuration = 0.12f;
             java.util.function.BiConsumer<com.badlogic.gdx.graphics.Texture, io.github.Wasnowl.entities.ProjectileType> buildAnim = (tex, ptype) -> {
                 if (tex == null) return;
                 int frameCount = 2;
@@ -208,8 +205,12 @@ public class GameScreen extends ScreenAdapter {
                 io.github.Wasnowl.managers.ProjectileAssetManager.getInstance().setProjectileAnimation(ptype, anim);
             };
 
+            // SIMPLE et le joueur
             buildAnim.accept(tSimple, io.github.Wasnowl.entities.ProjectileType.SIMPLE);
+            // AOE
+            buildAnim.accept(tAoe, io.github.Wasnowl.entities.ProjectileType.AOE);
             buildAnim.accept(tAoe, io.github.Wasnowl.entities.ProjectileType.AOE_STRONG);
+            // RICOCHET
             buildAnim.accept(tRic, io.github.Wasnowl.entities.ProjectileType.RICOCHET);
 
         } catch (Exception e) {

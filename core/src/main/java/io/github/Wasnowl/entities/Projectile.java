@@ -116,17 +116,6 @@ public class Projectile extends GameObject {
 
     @Override
     public void render(SpriteBatch batch) {
-        // Affichage flèche orientée si disponible
-        com.badlogic.gdx.graphics.g2d.TextureRegion arrowFrame = io.github.Wasnowl.managers.ProjectileAssetManager.getInstance().getArrowFrameForAngle(velocity.angleRad());
-        if (arrowFrame != null) {
-            batch.draw(arrowFrame,
-                position.x - size.x/2,
-                position.y - size.y/2,
-                size.x,
-                size.y);
-            return;
-        }
-        // Sinon, fallback sur animation ou texture classique
         if (type != null) {
             com.badlogic.gdx.graphics.g2d.Animation<com.badlogic.gdx.graphics.g2d.TextureRegion> anim = type.getAnimation();
             if (anim != null) {

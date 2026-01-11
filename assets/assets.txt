@@ -337,6 +337,9 @@ musique/1.mp3
 musique/README.txt
 player/Char.png
 player/Char_Idle.png
+projectiles/AOE.png
+projectiles/ricochet.png
+projectiles/simple.png
 towers/COUPON.pdf
 towers/COUPON.png
 towers/Font.png
