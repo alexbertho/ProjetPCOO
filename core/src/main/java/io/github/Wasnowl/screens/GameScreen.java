@@ -38,6 +38,7 @@ import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import io.github.Wasnowl.managers.MusicManager;
 
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FitViewport;
@@ -825,16 +826,22 @@ public class GameScreen extends ScreenAdapter {
         pauseOptionsWindow.defaults().pad(6);
 
         Label volumeLabel = new Label("Volume", uiSkin);
-        Slider volumeSlider = new Slider(0f, 1f, 0.01f, false, uiSkin);
+        Slider volumeSlider = new Slider(
+            MusicManager.MIN_VOLUME_DB,
+            MusicManager.MAX_VOLUME_DB,
+            1f,
+            false,
+            uiSkin
+        );
         if (game.getMusicManager() != null) {
-            volumeSlider.setValue(game.getMusicManager().getVolume());
+            volumeSlider.setValue(game.getMusicManager().getVolumeDb());
         }
 
         volumeSlider.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 if (game.getMusicManager() != null) {
-                    game.getMusicManager().setVolume(volumeSlider.getValue());
+                    game.getMusicManager().setVolumeDb(volumeSlider.getValue());
                 }
             }
         });

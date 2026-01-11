@@ -8,10 +8,13 @@ import com.badlogic.gdx.utils.Array;
 public class MusicManager {
     private static final String MUSIC_DIR = "musique";
     private static final String MUSIC_EXT = "mp3";
+    public static final float MIN_VOLUME_DB = -60f;
+    public static final float MAX_VOLUME_DB = 0f;
+    private static final float DEFAULT_VOLUME_DB = -18f;
     private final Array<FileHandle> tracks = new Array<>();
     private Music current;
     private int currentIndex = -1;
-    private float volume = 0.5f;
+    private float volume = dbToLinear(DEFAULT_VOLUME_DB);
 
     public void start() {
         FileHandle dir = Gdx.files.internal(MUSIC_DIR);
@@ -83,5 +86,30 @@ public class MusicManager {
 
     public float getVolume() {
         return volume;
+    }
+
+    public void setVolumeDb(float volumeDb) {
+        float clampedDb = Math.max(MIN_VOLUME_DB, Math.min(MAX_VOLUME_DB, volumeDb));
+        float linear = dbToLinear(clampedDb);
+        this.volume = linear;
+        if (current != null) {
+            current.setVolume(linear);
+        }
+    }
+
+    public float getVolumeDb() {
+        return linearToDb(volume);
+    }
+
+    private static float dbToLinear(float db) {
+        return (float) Math.pow(10f, db / 20f);
+    }
+
+    private static float linearToDb(float linear) {
+        if (linear <= 0f) {
+            return MIN_VOLUME_DB;
+        }
+        float db = 20f * (float) Math.log10(linear);
+        return Math.max(MIN_VOLUME_DB, Math.min(MAX_VOLUME_DB, db));
     }
 }

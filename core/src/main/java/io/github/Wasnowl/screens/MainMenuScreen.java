@@ -16,6 +16,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.Wasnowl.GameMain;
+import io.github.Wasnowl.managers.MusicManager;
 
 public class MainMenuScreen extends ScreenAdapter {
     private final GameMain game;
@@ -93,16 +94,22 @@ public class MainMenuScreen extends ScreenAdapter {
         optionsWindow.defaults().pad(6);
 
         Label volumeLabel = new Label("Volume", skin);
-        Slider volumeSlider = new Slider(0f, 1f, 0.01f, false, skin);
+        Slider volumeSlider = new Slider(
+            MusicManager.MIN_VOLUME_DB,
+            MusicManager.MAX_VOLUME_DB,
+            1f,
+            false,
+            skin
+        );
         if (game.getMusicManager() != null) {
-            volumeSlider.setValue(game.getMusicManager().getVolume());
+            volumeSlider.setValue(game.getMusicManager().getVolumeDb());
         }
 
         volumeSlider.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 if (game.getMusicManager() != null) {
-                    game.getMusicManager().setVolume(volumeSlider.getValue());
+                    game.getMusicManager().setVolumeDb(volumeSlider.getValue());
                 }
             }
         });
