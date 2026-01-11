@@ -152,6 +152,8 @@ public class GameScreen extends ScreenAdapter {
 
     @Override
     public void show() {
+    // Charger les 27 sprites de flèches orientées (arrow projectiles)
+    io.github.Wasnowl.managers.ProjectileAssetManager.getInstance().loadArrowFrames();
 
         batch = new SpriteBatch();
 

@@ -116,11 +116,20 @@ public class Projectile extends GameObject {
 
     @Override
     public void render(SpriteBatch batch) {
-        // Utiliser la texture ou l'animation du ProjectileType (Flyweight Pattern)
+        // Affichage flèche orientée si disponible
+        com.badlogic.gdx.graphics.g2d.TextureRegion arrowFrame = io.github.Wasnowl.managers.ProjectileAssetManager.getInstance().getArrowFrameForAngle(velocity.angleRad());
+        if (arrowFrame != null) {
+            batch.draw(arrowFrame,
+                position.x - size.x/2,
+                position.y - size.y/2,
+                size.x,
+                size.y);
+            return;
+        }
+        // Sinon, fallback sur animation ou texture classique
         if (type != null) {
             com.badlogic.gdx.graphics.g2d.Animation<com.badlogic.gdx.graphics.g2d.TextureRegion> anim = type.getAnimation();
             if (anim != null) {
-                // frame basé sur le temps d'animation stocké dans l'instance
                 com.badlogic.gdx.graphics.g2d.TextureRegion frame = anim.getKeyFrame(stateTime, true);
                 batch.draw(frame,
                         position.x - size.x/2,
@@ -129,7 +138,6 @@ public class Projectile extends GameObject {
                         size.y);
                 return;
             }
-
             if (type.getTexture() != null) {
                 batch.draw(type.getTexture(),
                         position.x - size.x/2,
@@ -138,7 +146,6 @@ public class Projectile extends GameObject {
                         size.y);
             }
         }
-        // Sinon: pas de rendu (sprites à ajouter via ProjectileAssetManager)
     }
 
     /**
