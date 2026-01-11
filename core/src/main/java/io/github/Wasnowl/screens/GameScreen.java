@@ -353,7 +353,7 @@ public class GameScreen extends ScreenAdapter {
         camera.update();
         mapRenderer.setView(camera);
         mapRenderer.render();
-        
+
         // Rendre les object layers (buildings, trees, props, etc.)
         renderMapObjectLayer(batch);
 
@@ -414,6 +414,11 @@ public class GameScreen extends ScreenAdapter {
         if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.RIGHT)) camera.position.x += speed;
         if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.UP)) camera.position.y += speed;
         if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.DOWN)) camera.position.y -= speed;
+        // Centrer la caméra sur le joueur si ESPACE est pressé
+        if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.SPACE)) {
+            camera.position.x = player.getPosition().x;
+            camera.position.y = player.getPosition().y;
+        }
     }
 
     @Override
@@ -536,10 +541,10 @@ public class GameScreen extends ScreenAdapter {
 
     private void renderMapObjectLayer(SpriteBatch batch) {
         if (map == null) return;
-        
+
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
-        
+
         // Parcourir tous les layers pour trouver les object layers
         for (com.badlogic.gdx.maps.MapLayer mapLayer : map.getLayers()) {
             // Vérifier si c'est un layer sans tuiles (object layer)
@@ -552,7 +557,7 @@ public class GameScreen extends ScreenAdapter {
                         Object gidObj = obj.getProperties().get("gid");
                         if (gidObj != null) {
                             int gid = ((Number) gidObj).intValue();
-                            
+
                             // Chercher le tile avec ce gid dans les tilesets
                             com.badlogic.gdx.maps.tiled.TiledMapTile tile = map.getTileSets().getTile(gid);
                             if (tile != null && tile.getTextureRegion() != null) {
@@ -566,7 +571,7 @@ public class GameScreen extends ScreenAdapter {
                 }
             }
         }
-        
+
         batch.end();
     }
 
