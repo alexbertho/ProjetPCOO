@@ -862,10 +862,20 @@ public class GameScreen extends ScreenAdapter {
             }
         });
 
+        TextButton mainMenuButton = new TextButton("Menu principal", uiSkin);
+        mainMenuButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                game.setScreen(new io.github.Wasnowl.screens.MainMenuScreen(game));
+                togglePauseOptionsWindow();
+            }
+        });
+
         pauseOptionsWindow.add(volumeLabel);
         pauseOptionsWindow.add(volumeSlider).width(220);
         pauseOptionsWindow.row();
-        pauseOptionsWindow.add(closeButton).colspan(2).padTop(6);
+        pauseOptionsWindow.add(closeButton).padTop(6);
+        pauseOptionsWindow.add(mainMenuButton).padTop(6);
         pauseOptionsWindow.pack();
         centerWindow(pauseOptionsWindow);
         uiStage.addActor(pauseOptionsWindow);
