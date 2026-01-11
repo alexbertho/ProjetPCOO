@@ -54,12 +54,17 @@ import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.MathUtils;
 
 public class GameScreen extends ScreenAdapter {
     private final GameMain game;
     private String mapPath = "maps/BeginningFields.tmx";
     private static final int DEFAULT_WINDOW_WIDTH = 1280;
     private static final int DEFAULT_WINDOW_HEIGHT = 720;
+    private static final float CAMERA_DEFAULT_ZOOM = 0.6f;
+    private static final float CAMERA_MIN_ZOOM = 0.5f;
+    private static final float CAMERA_MAX_ZOOM = 1f;
+    private static final float CAMERA_ZOOM_STEP = 0.1f;
     private static final String PAUSE_TITLE = "Pause";
     private static final String OPTIONS_TITLE = "Options";
     private static final String BLUR_VERTEX_SHADER =
@@ -229,6 +234,9 @@ public class GameScreen extends ScreenAdapter {
         float step = Math.min(tileWidth, tileHeight);
         float searchRadius = Math.max(mapPixelWidth, mapPixelHeight);
         player.setPositionSafe(mapPixelWidth * 0.5f, mapPixelHeight * 0.5f, searchRadius, step);
+        camera.zoom = MathUtils.clamp(CAMERA_DEFAULT_ZOOM, CAMERA_MIN_ZOOM, CAMERA_MAX_ZOOM);
+        camera.position.set(player.getPosition().x, player.getPosition().y, 0f);
+        camera.update();
         setupBackgroundBlur();
 
         // UI stage for tower menu (use same aspect ratio as the map)
@@ -331,6 +339,16 @@ public class GameScreen extends ScreenAdapter {
                     return true;
                 }
                 return false;
+            }
+
+            @Override
+            public boolean scrolled(float amountX, float amountY) {
+                if (paused) {
+                    return false;
+                }
+                float nextZoom = camera.zoom + amountY * CAMERA_ZOOM_STEP;
+                camera.zoom = MathUtils.clamp(nextZoom, CAMERA_MIN_ZOOM, CAMERA_MAX_ZOOM);
+                return true;
             }
         });
 
