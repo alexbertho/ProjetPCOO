@@ -26,10 +26,16 @@ public class WaveManager {
 
     // Configuration des vagues (exemple simple)
     private int[] waveSizes = {5, 10, 15}; // nombre d'ennemis par vague
+    private java.util.Map<String, com.badlogic.gdx.math.Vector2[]> mapPaths; // paths venant de la map Tiled
+    private java.util.Map<Integer, Integer> damageByEnemyType = new java.util.HashMap<>();
 
     public WaveManager(Array<Enemy> enemies, CurrencyManager currencyManager) {
         this.enemies = enemies;
         this.currencyManager = currencyManager;
+        // valeurs par défaut des dégâts égal au type (1->1, 2->2, etc.)
+        for (int i = 1; i <= 4; i++) {
+            damageByEnemyType.put(i, i);
+        }
     }
 
     /**
@@ -44,6 +50,16 @@ public class WaveManager {
      */
     public void setOnLifeLost(IntConsumer callback) {
         this.onLifeLost = callback;
+    }
+
+    /**
+     * Remplace ou complète la table de dégâts par type d'ennemi.
+     * Exemple: map.put(1,1); map.put(2,2); map.put(3,5);
+     */
+    public void setDamageMapping(java.util.Map<Integer, Integer> mapping) {
+        if (mapping == null) return;
+        this.damageByEnemyType.clear();
+        this.damageByEnemyType.putAll(mapping);
     }
 
     public void startNextWave() {
@@ -88,7 +104,7 @@ public class WaveManager {
                 if (e.hasReachedEndOfPath()) {
                     if (onLifeLost != null) {
                         int damage = getDamageForEnemyType(e.getEnemyType());
-                        onLifeLost.accept(damage); // perte de vies selon le type d'ennemi
+                        onLifeLost.accept(damage);
                     }
                 } else {
                     // Donner de l'argent si l'ennemi n'a pas atteint la fin du chemin
@@ -102,17 +118,6 @@ public class WaveManager {
                 enemies.removeIndex(i);
             }
         }
-    }
-
-    /**
-     * Retourne le montant de dégâts sur la vie selon le type d'ennemi.
-     * Par défaut, si le type n'est pas connu, on applique 1 point de dégât.
-     */
-    private int getDamageForEnemyType(int enemyType) {
-        if (enemyType >= 1 && enemyType <= 4) {
-            return enemyType; // type 1 => 1, type 2 => 2, etc.
-        }
-        return 1;
     }
 
     private void spawnEnemy() {
@@ -156,6 +161,13 @@ public class WaveManager {
             return enemyType;
         }
         return 0;
+    }
+
+    private int getDamageForEnemyType(int enemyType) {
+        Integer d = damageByEnemyType.get(enemyType);
+        if (d != null) return d;
+        // fallback : si non défini, 1 point
+        return 1;
     }
 
     public boolean isWaveFinished() {
