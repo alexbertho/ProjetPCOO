@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import io.github.Wasnowl.GameMain;
+import io.github.Wasnowl.controllers.GameInputController;
 import io.github.Wasnowl.entities.PlayerCharacter;
 
 public class CombatScreen extends ScreenAdapter {
@@ -19,6 +20,7 @@ public class CombatScreen extends ScreenAdapter {
     private SpriteBatch batch;
 
     private PlayerCharacter player;
+    private GameInputController inputController;
 
     public CombatScreen(GameMain game, String combatId) {
         this.game = game;
@@ -36,8 +38,24 @@ public class CombatScreen extends ScreenAdapter {
         // create player near left side
         player = new PlayerCharacter(100, 120);
 
-        // capture input if needed
-        Gdx.input.setInputProcessor(null);
+        inputController = new GameInputController(
+            null,
+            () -> false,
+            dir -> {
+                if (player != null) player.setInputDirection(dir);
+            },
+            null,
+            keycode -> {
+                if (keycode == com.badlogic.gdx.Input.Keys.ESCAPE) {
+                    game.setScreen(new GameScreen(game));
+                    return true;
+                }
+                return false;
+            },
+            null,
+            null
+        );
+        inputController.attach();
     }
 
     @Override
@@ -45,7 +63,8 @@ public class CombatScreen extends ScreenAdapter {
         Gdx.gl.glClearColor(0.05f, 0.05f, 0.12f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        // Update
+        // Update input then player
+        if (inputController != null) inputController.update(delta);
         player.update(delta);
 
         // Camera follow horizontally
@@ -58,10 +77,6 @@ public class CombatScreen extends ScreenAdapter {
         player.render(batch);
         batch.end();
 
-        // simple back to map debug: press ESC to return to the top-down map
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.ESCAPE)) {
-            game.setScreen(new GameScreen(game));
-        }
     }
 
     @Override
@@ -71,6 +86,7 @@ public class CombatScreen extends ScreenAdapter {
 
     @Override
     public void dispose() {
+        if (inputController != null) inputController.detach();
         batch.dispose();
     }
 }

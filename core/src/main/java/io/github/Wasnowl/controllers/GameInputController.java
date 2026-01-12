@@ -11,6 +11,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
  */
 public class GameInputController {
     public interface MoveHandler { void onMove(com.badlogic.gdx.math.Vector2 direction); }
+    public interface CameraMoveHandler { void onMove(com.badlogic.gdx.math.Vector2 direction, float delta); }
     public interface TouchDownHandler { boolean touchDown(int screenX, int screenY, int pointer, int button); }
     public interface KeyDownHandler { boolean keyDown(int keycode); }
     public interface ScrollHandler { boolean scrolled(float amountX, float amountY); }
@@ -18,6 +19,7 @@ public class GameInputController {
     private final Stage uiStage;
     private final java.util.function.BooleanSupplier isPaused;
     private final MoveHandler moveHandler;
+    private final CameraMoveHandler cameraMoveHandler;
     private final TouchDownHandler touchHandler;
     private final KeyDownHandler keyHandler;
     private final ScrollHandler scrollHandler;
@@ -56,13 +58,15 @@ public class GameInputController {
                                MoveHandler moveHandler,
                                TouchDownHandler touchHandler,
                                KeyDownHandler keyHandler,
-                               ScrollHandler scrollHandler) {
+                               ScrollHandler scrollHandler,
+                               CameraMoveHandler cameraMoveHandler) {
         this.uiStage = uiStage;
         this.isPaused = isPaused;
         this.moveHandler = moveHandler;
         this.touchHandler = touchHandler;
         this.keyHandler = keyHandler;
         this.scrollHandler = scrollHandler;
+        this.cameraMoveHandler = cameraMoveHandler;
     }
 
     /** Attache le controller (installe l'InputProcessor) */
@@ -86,11 +90,10 @@ public class GameInputController {
      * Doit être appelé chaque frame par le contrôleur pour traiter les touches continues (WASD / flèches).
      */
     public void update(float delta) {
-        // use delta to avoid 'parameter not used' warnings (no-op purpose)
-        float _d = delta; if (_d < 0f) _d = -_d;
         if (isPaused != null && isPaused.getAsBoolean()) {
             // envoyer zéro
             if (moveHandler != null) moveHandler.onMove(reusableDir.set(0f, 0f));
+            if (cameraMoveHandler != null) cameraMoveHandler.onMove(reusableDir, delta);
             return;
         }
         reusableDir.set(0f, 0f);
@@ -108,6 +111,9 @@ public class GameInputController {
         }
         if (moveHandler != null) {
             moveHandler.onMove(reusableDir);
+        }
+        if (cameraMoveHandler != null) {
+            cameraMoveHandler.onMove(reusableDir, delta);
         }
     }
 }

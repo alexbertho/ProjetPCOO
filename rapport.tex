@@ -1,0 +1,1252 @@
+% ============================================================
+%  RAPPORT DE PROJET --- MOTEUR 2D (LibGDX) --- TEMPLATE MODERNE
+%  Adapté EXACTEMENT à la structure fournie par l'utilisateur
+% ============================================================
+\documentclass[11pt,a4paper]{article}
+
+% ---------- Langue & encodage ----------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+
+% ---------- Mise en page ----------
+\usepackage{geometry}
+\usepackage{tikz}
+\usepackage{shellesc}
+\usepackage{fancyvrb}
+
+\newcommand{\PlantUMLCmd}{plantuml}
+
+
+
+\geometry{margin=2.2cm, headheight=16pt}
+\usepackage{setspace}
+\onehalfspacing
+
+% ---------- Couleurs & liens ----------
+\usepackage{xcolor}
+\definecolor{Primary}{HTML}{2563EB} % bleu moderne
+\definecolor{Dark}{HTML}{111827}
+\definecolor{Muted}{HTML}{6B7280}
+\definecolor{Light}{HTML}{F3F4F6}
+\definecolor{CodeBg}{HTML}{F1F5F9}
+\definecolor{CodeRule}{HTML}{CBD5E1}
+\definecolor{SyntaxKeyword}{HTML}{1D4ED8}
+\definecolor{SyntaxString}{HTML}{15803D}
+\definecolor{SyntaxComment}{HTML}{64748B}
+\definecolor{SyntaxNumber}{HTML}{B45309}
+\definecolor{SyntaxType}{HTML}{0F766E}
+\definecolor{SyntaxAnnotation}{HTML}{9A3412}
+
+\usepackage[hidelinks]{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=Primary,
+  urlcolor=Primary,
+  citecolor=Primary
+}
+
+% ---------- Typo ----------
+\usepackage{microtype}
+
+% ---------- En-têtes / pieds de page ----------
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\textcolor{Muted}{Rapport --- Moteur de jeu 2D (LibGDX)}}
+\rhead{\textcolor{Muted}{\thepage}}
+\renewcommand{\headrulewidth}{0.3pt}
+
+% ---------- Figures & tableaux ----------
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{array}
+
+% ---------- Listes ----------
+\usepackage{enumitem}
+\setlist[itemize]{topsep=4pt, itemsep=2pt}
+\setlist[enumerate]{topsep=4pt, itemsep=2pt}
+
+% ---------- Encadrés modernes ----------
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
+\newtcolorbox{consigne}[1][]{
+  enhanced, breakable,
+  colback=Light, colframe=Primary,
+  boxrule=0.6pt, arc=6pt,
+  left=10pt, right=10pt, top=8pt, bottom=8pt,
+  title=#1,
+  fonttitle=\bfseries\color{Dark},
+}
+\newtcolorbox{importantbox}[1][]{
+  enhanced, breakable,
+  colback=Light, colframe=Dark,
+  boxrule=0.6pt, arc=6pt,
+  left=10pt, right=10pt, top=8pt, bottom=8pt,
+  title=#1,
+  fonttitle=\bfseries\color{Dark},
+}
+\newtcolorbox{codefilebox}[1][]{
+  enhanced,
+  colback=Light, colframe=CodeRule,
+  boxrule=0.5pt, arc=5pt,
+  left=8pt, right=8pt, top=4pt, bottom=4pt,
+  fontupper=\small\color{Dark},
+  before skip=6pt, after skip=4pt,
+  width=\linewidth,
+  #1
+}
+\makeatletter
+\newcommand{\CodeFile}[1]{%
+  \begin{codefilebox}[left skip=\dimexpr\lst@xleftmargin-\lst@framexleftmargin\relax, width=\dimexpr\linewidth-\lst@xleftmargin-\lst@xrightmargin+\lst@framexleftmargin+\lst@framexrightmargin\relax]
+    \raggedright\path{#1}
+  \end{codefilebox}
+}
+\makeatother
+
+% ---------- Code (Java) ----------
+\usepackage{listings}
+\lstdefinestyle{javaModern}{
+  language=Java,
+  basicstyle=\ttfamily\small\color{Dark},
+  keywordstyle=\bfseries\color{SyntaxKeyword},
+  keywordstyle=[2]\color{SyntaxType},
+  keywordstyle=[3]\color{SyntaxAnnotation},
+  keywordstyle=[4]\color{SyntaxNumber},
+  commentstyle=\itshape\color{SyntaxComment},
+  stringstyle=\color{SyntaxString},
+  identifierstyle=\color{Dark},
+  numbers=left,
+  numberstyle=\tiny\color{SyntaxNumber},
+  stepnumber=1,
+  numbersep=8pt,
+  showstringspaces=false,
+  tabsize=2,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{CodeRule},
+  framerule=0.6pt,
+  backgroundcolor=\color{CodeBg},
+  xleftmargin=8pt,
+  framexleftmargin=8pt,
+  framesep=6pt,
+  morekeywords=[2]{ProjectileType, Projectile, Enemy, Tower, TowerBuilder, ProjectileManager, ProjectilePool, TowerType, Vector2, Array, Map},
+  morekeywords=[3]{@Override},
+  morekeywords=[4]{true, false, null}
+}
+\lstset{style=javaModern}
+
+% ---------- Petites macros pratiques ----------
+\newcommand{\HRule}{\par\noindent\rule{\linewidth}{0.4pt}\par}
+\newcommand{\ProjectTitle}{\textbf{ApocalypseTower}}
+\newcommand{\GitHubLink}{\url{https://github.com/alexbertho/ProjetPCOO}}
+\newcommand{\UMLInput}[1]{\IfFileExists{#1.tex}{\input{#1.tex}}{\input{#1.latex}}}
+
+% ============================================================
+\begin{document}
+
+% ===================== TITRE (conforme au template) =====================
+{\LARGE \textbf{Rapport de Projet - Développement d'un Moteur de Jeu 2D avec LibGDX}}\par
+{\Large \ProjectTitle}\par
+\vspace{0.2cm}
+\HRule
+
+\vspace{0.6cm}
+\tableofcontents
+\newpage
+
+% ============================================================
+% Équipe et Contributions
+% ============================================================
+\section*{Équipe et Contributions}
+\addcontentsline{toc}{section}{Équipe et Contributions}
+
+\begin{consigne}[Consigne]
+Précisez en deux mots le rôle du membre (ex: \emph{\og développeur du moteur physique\fg{}}, \emph{\og développeur du gameplay\fg{}}).
+Chaque membre doit avoir contribué au code Java.
+\end{consigne}
+
+\begin{itemize}
+  \item \textbf{BERTHO Alexandre} : Développeur du moteur jeu.
+  \item \textbf{DRIDI Dylan} : Développeur du moteur jeu et gameplay.
+\end{itemize}
+
+\HRule
+\vspace{0.2cm}
+
+% ============================================================
+% Section 1. Introduction
+% ============================================================
+\section{Introduction}
+Ce projet, intitulé \emph{ApocalypseTower}, vise à créer un moteur de jeu 2D en Java avec LibGDX,
+capable de charger des cartes Tiled, de gérer des entités de gameplay (tours, ennemis, projectiles, joueur)
+et de proposer un prototype jouable mêlant tower defense et exploration. L'objectif est d'obtenir une base
+réutilisable et extensible pour créer rapidement de nouveaux niveaux, ajouter des types d'ennemis/tours et
+enrichir la logique de jeu sans réécrire l'architecture.
+
+\begin{consigne}[Exemple d'objectifs]
+Développer un moteur de jeu 2D extensible permettant d'ajouter du contenu sans modifier le code Java,
+ou implémenter un moteur de carte 2D pour un RPG gérant les positions via Tiled.
+\end{consigne}
+
+% ============================================================
+% Section 2. Présentation du projet
+% ============================================================
+\section{Présentation du projet}
+
+\subsection{Technologies et Outils Utilisés}
+\begin{itemize}
+  \item \textbf{LibGDX} : Pour le développement du moteur de jeu.
+  \item \textbf{Tiled} : Pour la création et la configuration des cartes.
+  \item \textbf{Gradle} : Pour la compilation et la gestion des dépendances.
+  \item \textbf{IntelliJ IDEA} : Environnement de développement intégré.
+  \item \textbf{Git/GitHub} : Pour le versionnement et le partage.
+\end{itemize}
+
+\subsection{Fonctionnalités implémentées}
+Le moteur propose un socle jouable avec des fonctionnalités clés pour un tower defense 2D :
+
+\begin{itemize}
+  \item Chargement de cartes \texttt{.tmx} et rendu avec caméra orthographique (tiles + objets).
+  \item Système de vagues d'ennemis avec spawn progressif et récompenses.
+  \item Déplacement des ennemis via une stratégie de chemin (\texttt{PathStrategy}).
+  \item Tours avec portée, cadence et projectiles (simple, AOE, AOE forte, ricochet).
+  \item Gestion de la monnaie et HUD (or, coût, barre de vie) + bouton \emph{Next Wave}.
+  \item Joueur contrôlable sur la carte avec collisions issues des objets Tiled.
+  \item Portails de transition (map ou combat) et écrans multiples.
+  \item Menus (principal, pause, game over) et musique de fond avec options de volume.
+\end{itemize}
+
+% Option (facultatif) : exemple de listing
+\begin{lstlisting}
+// Selection d'un chemin via la Strategy pour la vague courante
+Vector2[] path = PathStrategyFactory.getStrategyForWave(currentWave).getPath();
+Enemy enemy = new Enemy(0, 0, path, 50f);
+\end{lstlisting}
+
+\subsection{Configuration et Ajout de Contenu avec Tiled}
+L'édition de contenu est pensée pour rester simple côté Tiled. Les cartes sont chargées
+dynamiquement et les objets Tiled sont interprétés côté moteur.
+
+\begin{itemize}
+  \item \textbf{Création :} créer une carte \texttt{.tmx} et y ajouter des couches de tiles.
+  \item \textbf{Manipulation :} placer les objets (obstacles, props) via une couche d'objets.
+  \item \textbf{Interprétation :} les objets Tiled (rectangles, polylines, ellipses, objets de tuile)
+        sont convertis en rectangles de collision pour le joueur et rendus comme éléments de décor.
+\end{itemize}
+
+% Exemple de structure "pas à pas" (optionnel)
+\begin{consigne}[Astuce de rédaction]
+Décris un \textbf{exemple concret} :
+\begin{itemize}
+  \item un fichier \texttt{maps/BeginningFields.tmx} ajouté,
+  \item une couche de tiles pour le décor,
+  \item une couche d'objets \texttt{Collisions} avec rectangles/polylines,
+  \item une couche d'objets décoratifs (objets avec \texttt{gid}),
+  \item et comment le moteur transforme ces objets en rectangles de collision utilisés par \texttt{PlayerTower}.
+\end{itemize}
+\end{consigne}
+
+\subsection{Compilation et exécution}
+\begin{consigne}
+Présentez comment \textbf{compiler et exécuter} votre projet.
+\end{consigne}
+
+\begin{enumerate}
+  \item \textbf{Prérequis :} JDK 8+ installé, Gradle Wrapper fourni dans le dépôt.
+  \item \textbf{Exécution rapide (Linux/macOS) :} \texttt{./run.sh} (script fourni).
+  \item \textbf{Exécution rapide (Windows) :} \texttt{gradlew.bat lwjgl3:run}
+  \item \textbf{Compilation :} \texttt{./gradlew} \texttt{lwjgl3:jar} (JAR dans \texttt{lwjgl3/build/libs}) ou \texttt{./gradlew} \texttt{build}.
+\end{enumerate}
+
+\noindent\textbf{Lien vers le dépôt GitHub :} \GitHubLink
+
+\HRule
+\vspace{0.2cm}
+
+% ============================================================
+% Section 3. Présentation technique du projet et contributions
+% ============================================================
+\section{Présentation technique du projet et contributions}
+
+\subsection{Architecture Générale du moteur de jeu}
+Le projet est structuré en modules \texttt{core} (logique partagée) et \texttt{lwjgl3}
+(exécutable desktop). La logique principale se répartit entre :
+\begin{itemize}
+  \item \textbf{Bootstrapping} : \texttt{GameMain} initialise la musique et charge \texttt{MainMenuScreen}.
+  \item \textbf{Screens} : \texttt{MainMenuScreen}, \texttt{GameScreen}, \texttt{CombatScreen}, \texttt{GameOverScreen}.
+  \item \textbf{Entities} : \texttt{GameObject}, \texttt{PlayerTower}/\texttt{PlayerCharacter}, \texttt{Enemy},\\
+        \texttt{Tower}/\texttt{RicochetTower}, \texttt{Projectile}/\texttt{RicochetProjectile}, \texttt{Portal}.
+  \item \textbf{Managers} : \texttt{WaveManager}, \texttt{ProjectileManager}, \texttt{ProjectilePool},\\
+        \texttt{CurrencyManager}, \texttt{MusicManager}, \texttt{EnemyAssetManager}, \texttt{TowerAssetManager},
+        \texttt{ProjectileAssetManager}.
+  \item \textbf{UI / Contrôleurs} : \texttt{UIManager}, \texttt{GameInputController}, \texttt{PlacementController},
+        \texttt{GameController}.
+  \item \textbf{Modèle central} : \texttt{GameState} regroupe l'état partagé (joueur, vagues, entités, économie).
+  \item \textbf{Stratégies} : \texttt{PathStrategy} + \texttt{PathStrategyFactory} pour sélectionner le chemin des vagues.
+\end{itemize}
+
+Les ennemis sont construits par composition (\texttt{EnemyMovement}, \texttt{EnemyHealth}, \texttt{EnemyAnimator})
+pour isoler le déplacement, la gestion des points de vie et le rendu/animations, avec une transition visuelle
+vers un état \emph{walk2} quand la vie passe sous 50\%.
+
+\subsection{Design Patterns utilisés}
+Les patterns suivants sont implémentés dans le code :
+\begin{itemize}
+  \item \textbf{Flyweight} : \texttt{ProjectileType} mutualise l'état intrinsèque des projectiles.
+  \item \textbf{Factory} : \texttt{ProjectileTypeFactory} et \texttt{PathStrategyFactory}.
+  \item \textbf{Builder} : \texttt{TowerBuilder} simplifie la création des tours.
+  \item \textbf{Manager} : \texttt{ProjectileManager}, \texttt{WaveManager}, \texttt{MusicManager}.
+  \item \textbf{Object Pool} : \texttt{ProjectilePool} recycle les projectiles.
+  \item \textbf{Strategy} : \texttt{PathStrategy} choisit la trajectoire des vagues.
+  \item \textbf{Singleton} : \texttt{ProjectilePool}, \texttt{EnemyAssetManager}, \texttt{TowerAssetManager}.
+\end{itemize}
+
+\clearpage
+
+\subsubsection{Flyweight}
+\CodeFile{core/src/main/java/io/github/Wasnowl/entities/ProjectileType.java}
+\begin{lstlisting}
+// ProjectileType : etat intrinseque partage
+public enum ProjectileType {
+    SIMPLE(25f, 200f, 5f, false),
+    AOE(40f, 180f, 10f, true),
+    AOE_STRONG(75f, 150f, 50f, true),
+    RICOCHET(20f, 250f, 5f, false);
+
+    private final float damage;
+    private final float speed;
+    private final float explosionRadius;
+    private final boolean isAOE;
+}
+\end{lstlisting}
+
+\CodeFile{core/src/main/java/io/github/Wasnowl/entities/Projectile.java}
+\begin{lstlisting}
+// Projectile : etat extrinseque + usage du flyweight
+public class Projectile extends GameObject {
+    private ProjectileType type;  // Flyweight intrinsic state
+
+    public Projectile(Vector2 start, Enemy target, ProjectileType type, Array<Enemy> allEnemies) {
+        super(start.x, start.y);
+        this.type = type;
+        this.velocity = target.getPosition().cpy().sub(start).nor().scl(type.getSpeed());
+    }
+}
+\end{lstlisting}
+
+\begin{VerbatimOut}{architecture.puml}
+@startuml
+title Flyweight - ProjectileType partage
+skinparam classAttributeIconSize 0
+
+enum ProjectileType {
+  SIMPLE
+  AOE
+  AOE_STRONG
+  RICOCHET
+  --
+  - damage : float
+  - speed : float
+  - explosionRadius : float
+  - isAOE : boolean
+}
+
+class Projectile {
+  - type : ProjectileType
+  - velocity : Vector2
+  - target : Enemy
+  - allEnemies : Array<Enemy>
+  + update(delta : float) : void
+}
+
+Projectile --> ProjectileType : uses\n(intrinsic state)
+
+note right of ProjectileType
+Etat intrinsique partage
+par tous les projectiles
+end note
+
+note left of Projectile
+Etat extrinseque :
+position, cible, vitesse
+end note
+@enduml
+\end{VerbatimOut}
+\ShellEscape{\PlantUMLCmd\space -tlatex:nopreamble architecture.puml}
+
+% 3) On inclut le TikZ généré
+\begin{figure}[H]
+  \centering
+  \resizebox{\linewidth}{!}{\UMLInput{architecture}}
+\end{figure}
+
+\clearpage
+
+\subsubsection{Factory et Singleton}
+\CodeFile{core/src/main/java/io/github/Wasnowl/factories/ProjectileTypeFactory.java}
+\begin{lstlisting}
+private static final Map<String, ProjectileType> typeCache = new HashMap<>();
+
+static {
+    typeCache.put("SIMPLE", ProjectileType.SIMPLE);
+    typeCache.put("AOE", ProjectileType.AOE_STRONG);
+    typeCache.put("AOE_STRONG", ProjectileType.AOE_STRONG);
+    typeCache.put("RICOCHET", ProjectileType.RICOCHET);
+}
+
+public static ProjectileType getType(String typeName) {
+    return typeCache.getOrDefault(typeName.toUpperCase(), ProjectileType.SIMPLE);
+}
+\end{lstlisting}
+
+\begin{VerbatimOut}{pattern_factory.puml}
+@startuml
+' Diagramme UML centré sur le sous-système Projectile
+skinparam componentStyle uml2
+
+package "entities" {
+  enum ProjectileType {
+    +SIMPLE
+    +AOE
+    +AOE_STRONG
+    +RICOCHET
+    --
+    - damage : float
+    - speed : float
+    - explosionRadius : float
+    - isAOE : boolean
+    - texture : TextureRegion
+    - animation : Animation<TextureRegion>
+    + getDamage() : float
+    + getSpeed() : float
+    + getExplosionRadius() : float
+    + isAOE() : boolean
+    + getTexture() : TextureRegion
+    + getAnimation() : Animation<TextureRegion>
+    + setTexture(tex : TextureRegion)
+    + setAnimation(anim : Animation<TextureRegion>)
+  }
+
+  class Projectile {
+    - type : ProjectileType
+    - velocity : Vector2
+    - target : Enemy
+    - allEnemies : Array<Enemy>
+    - dead : boolean
+    - texture : TextureRegion
+    - stateTime : float
+    + Projectile(start : Vector2, target : Enemy, type : ProjectileType)
+    + Projectile(start : Vector2, target : Enemy, type : ProjectileType, allEnemies : Array<Enemy>)
+    + reset(start : Vector2, target : Enemy, type : ProjectileType, allEnemies : Array<Enemy>)
+    + update(delta : float)
+    + render(batch : SpriteBatch)
+    + setTexture(tex : TextureRegion)
+    + isDead() : boolean
+    + getType() : ProjectileType
+    + getTarget() : Enemy
+  }
+
+  class RicochetProjectile extends Projectile {
+    - ricochetRange : float
+    - bouncesRemaining : int
+    - hitEnemies : Array<Enemy>
+    + RicochetProjectile(start : Vector2, target : Enemy, type : ProjectileType, allEnemies : Array<Enemy>, ricochetRange : float, maxBounces : int)
+    + reset(start : Vector2, target : Enemy, type : ProjectileType, allEnemies : Array<Enemy>)
+    + update(delta : float)
+    - handleImpact()
+    - findNextRicochetTarget() : Enemy
+  }
+}
+
+package "managers" {
+  class ProjectilePool {
+    - instance : ProjectilePool
+    - pool : Array<Projectile>
+    - RICOCHET_RANGE : float
+    - MAX_BOUNCES : int
+    - ProjectilePool()
+    + getInstance() : ProjectilePool
+    + acquire(start : Vector2, target : Enemy, type : ProjectileType, allEnemies : Array<Enemy>) : Projectile
+    + release(p : Projectile)
+  }
+
+  class ProjectileManager {
+    - projectiles : Array<Projectile>
+    + ProjectileManager(projectiles : Array<Projectile>)
+    + update(delta : float)
+    + render(batch : SpriteBatch)
+    + getActiveProjectileCount() : int
+    + clear()
+  }
+}
+
+package "factories" {
+  class ProjectileTypeFactory {
+    - typeCache : Map<String, ProjectileType>
+    + getType(typeName : String) : ProjectileType
+    + getType(type : ProjectileType) : ProjectileType
+    + printAvailableTypes()
+  }
+}
+
+' Relations
+Projectile "1" --> "1" ProjectileType : uses
+RicochetProjectile --|> Projectile
+ProjectilePool "1" o-- "*" Projectile : pool contains
+ProjectilePool ..> RicochetProjectile : creates (conditional)
+ProjectilePool ..> Projectile : creates
+ProjectileManager "1" --> "*" Projectile : manages
+ProjectileTypeFactory ..> ProjectileType : returns (flyweight)
+Projectile ..> Enemy : targets
+Projectile ..> "Array<Enemy>" : may reference for AOE
+ProjectileType "1" *-- "0..1" TextureRegion : flyweight texture
+ProjectileType "1" *-- "0..1" Animation : flyweight animation
+
+' Notes
+note right of ProjectilePool
+  Singleton pool that creates Projectile or
+  RicochetProjectile based on ProjectileType.
+end note
+
+note left of ProjectileTypeFactory
+  Flyweight factory for projectile intrinsic data.
+end note
+
+@enduml
+
+\end{VerbatimOut}
+\ShellEscape{\PlantUMLCmd\space -tlatex:nopreamble pattern_factory.puml}
+
+% 3) On inclut le TikZ généré
+\begin{figure}[H]
+  \centering
+  \resizebox{0.5\linewidth}{!}{\UMLInput{pattern_factory}}
+\end{figure}
+
+\clearpage
+
+\subsubsection{Builder}
+\CodeFile{core/src/main/java/io/github/Wasnowl/builders/TowerBuilder.java}
+\begin{lstlisting}
+public class TowerBuilder {
+    private float range = 150f;
+    private float fireRate = 1f;
+    private ProjectileType projectileType = ProjectileType.SIMPLE;
+    private Array<Enemy> enemies;
+    private Array<Projectile> projectiles;
+
+    public TowerBuilder withRange(float range) {
+        this.range = range;
+        return this;
+    }
+
+    public Tower build() {
+        if (enemies == null || projectiles == null) {
+            throw new IllegalStateException("enemies et projectiles doivent être définis");
+        }
+        Tower tower = new Tower(x, y, range, fireRate, enemies, projectiles);
+        tower.setProjectileType(projectileType);
+        return tower;
+    }
+}
+\end{lstlisting}
+
+\CodeFile{core/src/main/java/io/github/Wasnowl/screens/GameScreen.java}
+\begin{lstlisting}
+// Usage dans GameScreen
+Tower placed = new TowerBuilder(wx, wy)
+    .withRange(200f)
+    .withFireRate(1.5f)
+    .withTowerType(previewTowerType)
+    .withEnemies(enemies)
+    .withProjectiles(projectiles)
+    .build();
+\end{lstlisting}
+
+\begin{VerbatimOut}{pattern_builder.puml}
+@startuml
+title Builder - TowerBuilder
+skinparam classAttributeIconSize 0
+
+class TowerBuilder {
+  - x : float
+  - y : float
+  - range : float
+  - fireRate : float
+  - projectileType : ProjectileType
+  - towerType : TowerType
+  - enemies : Array<Enemy>
+  - projectiles : Array<Projectile>
+  - towerId : int
+  - size : float
+  + withRange(range : float) : TowerBuilder
+  + withFireRate(fireRate : float) : TowerBuilder
+  + withProjectileType(type : ProjectileType) : TowerBuilder
+  + withTowerType(type : TowerType) : TowerBuilder
+  + withEnemies(enemies : Array<Enemy>) : TowerBuilder
+  + withProjectiles(projectiles : Array<Projectile>) : TowerBuilder
+  + withTowerId(towerId : int) : TowerBuilder
+  + withSize(size : float) : TowerBuilder
+  + build() : Tower
+}
+
+class Tower
+class Enemy
+class Projectile
+enum ProjectileType
+enum TowerType
+
+TowerBuilder --> Tower : construit
+TowerBuilder --> Enemy
+TowerBuilder --> Projectile
+TowerBuilder --> ProjectileType
+TowerBuilder --> TowerType
+@enduml
+\end{VerbatimOut}
+\ShellEscape{\PlantUMLCmd\space -tlatex:nopreamble pattern_builder.puml}
+
+% 3) On inclut le TikZ généré
+\begin{figure}[H]
+  \centering
+  \resizebox{\linewidth}{!}{\UMLInput{pattern_builder}}
+\end{figure}
+
+\clearpage
+
+\subsubsection{Manager}
+\CodeFile{core/src/main/java/io/github/Wasnowl/managers/ProjectileManager.java}
+\begin{lstlisting}
+public void update(float delta) {
+    for (int i = projectiles.size - 1; i >= 0; i--) {
+        Projectile p = projectiles.get(i);
+        p.update(delta);
+        if (p.isDead()) {
+            projectiles.removeIndex(i);
+            ProjectilePool.getInstance().release(p);
+        }
+    }
+}
+
+public void render(SpriteBatch batch) {
+    for (Projectile p : projectiles) {
+        p.render(batch);
+    }
+}
+\end{lstlisting}
+
+\CodeFile{core/src/main/java/io/github/Wasnowl/screens/GameScreen.java}
+\begin{lstlisting}
+// Usage dans GameScreen
+projectileManager.update(delta);
+projectileManager.render(batch);
+\end{lstlisting}
+
+\begin{VerbatimOut}{pattern_manager.puml}
+@startuml
+title Manager - ProjectileManager
+skinparam classAttributeIconSize 0
+
+class ProjectileManager {
+  - projectiles : Array<Projectile>
+  + update(delta : float) : void
+  + render(batch : SpriteBatch) : void
+  + clear() : void
+}
+
+class Projectile
+class ProjectilePool {
+  + getInstance() : ProjectilePool
+  + release(p : Projectile) : void
+}
+
+ProjectileManager --> Projectile : gere
+ProjectileManager --> ProjectilePool : recycle
+@enduml
+\end{VerbatimOut}
+\ShellEscape{\PlantUMLCmd\space -tlatex:nopreamble pattern_manager.puml}
+
+% 3) On inclut le TikZ généré
+\begin{figure}[H]
+  \centering
+  \resizebox{0.85\linewidth}{!}{\UMLInput{pattern_manager}}
+\end{figure}
+
+\clearpage
+
+\subsubsection{Object Pool}
+Le pool recycle les instances de projectiles pour limiter les allocations.
+\begin{VerbatimOut}{pattern_object_pool.puml}
+@startuml
+title Object Pool - ProjectilePool
+skinparam classAttributeIconSize 0
+
+class ProjectilePool {
+  - {static} instance : ProjectilePool
+  - pool : Array<Projectile>
+  + {static} getInstance() : ProjectilePool
+  + acquire(start : Vector2, target : Enemy, type : ProjectileType, allEnemies : Array<Enemy>) : Projectile
+  + release(p : Projectile) : void
+}
+
+class Tower
+class ProjectileManager
+class Projectile
+class Enemy
+class ProjectileType
+class Vector2
+
+Tower --> ProjectilePool : acquire()
+ProjectileManager --> ProjectilePool : release()
+ProjectilePool --> Projectile : reuse
+@enduml
+\end{VerbatimOut}
+\ShellEscape{\PlantUMLCmd\space -tlatex:nopreamble pattern_object_pool.puml}
+
+% 3) On inclut le TikZ généré
+\begin{figure}[H]
+  \centering
+  \resizebox{\linewidth}{!}{\UMLInput{pattern_object_pool}}
+\end{figure}
+
+\subsubsection{Strategy}
+Le pattern \emph{Strategy} permet de sélectionner dynamiquement un chemin en fonction de la vague, sans
+modifier le code des ennemis.
+\paragraph{Choix d’implémentation.}
+Nous avons choisi de définir le chemin des ennemis via le \emph{pattern Strategy} afin de l’intégrer directement au jeu et de pouvoir tester les fonctionnalités au fil du développement.
+\paragraph{Perspective d’amélioration.}
+Pour une approche plus générique et réutilisable, il serait possible de définir les trajets sous forme de \texttt{PolylineMapObject} dans Tiled, puis de récupérer ces points pour n’importe quelle carte fournie en entrée (ce qui renforcerait l’aspect \emph{moteur} du projet). Toutefois, la mise en place de ces polylignes étant assez fastidieuse et notre maîtrise de Tiled encore limitée, nous avons privilégié une solution plus directe pour cette version.
+\CodeFile{core/src/main/java/io/github/Wasnowl/strategies/PathStrategyFactory.java}
+\begin{lstlisting}
+Vector2[] path = PathStrategyFactory.getStrategyForWave(currentWave).getPath();
+Enemy enemy = new Enemy(0, 0, path, 50f);
+\end{lstlisting}
+
+\subsubsection{UML - Sous-système Projectile}
+La structure du sous-système Projectile s'appuie sur la factory et le flyweight.
+\begin{figure}[H]
+  \centering
+  \resizebox{0.5\linewidth}{!}{\UMLInput{pattern_factory}}
+\end{figure}
+
+\subsubsection{UML - Vue générale de GameObject}
+\begin{VerbatimOut}{general_overview.puml}
+@startuml
+' Diagramme détaillé : GameObject, Enemy, Tower, PlayerTower, PlayerCharacter, Projectile, TowerBuilder
+
+abstract class GameObject {
+  - position : Vector2
+  - size : Vector2
+  + GameObject(x : float, y : float)
+  + getPosition() : Vector2
+  + setPosition(pos : Vector2)
+  + getSize() : Vector2
+  + setSize(size : Vector2)
+  + update(delta : float)
+  + render(batch : SpriteBatch)
+}
+
+class Enemy {
+  - movement : EnemyMovement
+  - health : EnemyHealth
+  - animator : EnemyAnimator
+  - enemyType : int
+  - reachedEndOfPath : boolean
+  + Enemy(x : float, y : float, path : Vector2[], speed : float)
+  + setEnemyId(id : int)
+  + update(delta : float)
+  + render(batch : SpriteBatch)
+  + takeDamage(amount : float)
+  + isDead() : boolean
+  + getHealth() : float
+  + getMaxHealth() : float
+  + setWalkFrames(frames : TextureRegion[], frameDuration : float)
+  + setWalk2Frames(frames : TextureRegion[], frameDuration : float)
+  + setDeathFrames(frames : TextureRegion[], frameDuration : float)
+  + getEnemyType() : int
+  + hasReachedEndOfPath() : boolean
+}
+
+class Projectile {
+  - type : ProjectileType
+  - velocity : Vector2
+  - target : Enemy
+  - allEnemies : Array<Enemy>
+  - dead : boolean
+  - texture : TextureRegion
+  - stateTime : float
+  + Projectile(start : Vector2, target : Enemy, type : ProjectileType)
+  + Projectile(start : Vector2, target : Enemy, type : ProjectileType, allEnemies : Array<Enemy>)
+  + reset(start : Vector2, target : Enemy, type : ProjectileType, allEnemies : Array<Enemy>)
+  + update(delta : float)
+  + render(batch : SpriteBatch)
+  + setTexture(tex : TextureRegion)
+  + isDead() : boolean
+  + getType() : ProjectileType
+  + getTarget() : Enemy
+}
+
+class Tower {
+  - range : float
+  - fireRate : float
+  - fireCooldown : float
+  - projectileType : ProjectileType
+  - towerType : TowerType
+  - cost : int
+  - enemies : Array<Enemy>
+  - projectiles : Array<Projectile>
+  - renderer : TowerRenderer
+  + Tower(x : float, y : float, range : float, fireRate : float, enemies : Array<Enemy>, projectiles : Array<Projectile>)
+  + update(delta : float)
+  + render(batch : SpriteBatch)
+  + setTexture(texture : TextureRegion)
+  + setAnimation(frames : TextureRegion[], frameDuration : float)
+  + setAnimating(animating : boolean)
+  + setProjectileType(type : ProjectileType)
+  + setTowerType(type : TowerType)
+  + getTowerType() : TowerType
+  + getCost() : int
+  + getProjectileType() : ProjectileType
+}
+
+class PlayerTower {
+  - portals : Array<Portal>
+  - velocity : Vector2
+  - candidate : Vector2
+  - hitbox : Rectangle
+  - animator : PlayerAnimator
+  - currentFrame : TextureRegion
+  - worldWidth : float
+  - worldHeight : float
+  - collisionRects : Array<Rectangle>
+  - game : GameMain
+  + PlayerTower(x : float, y : float, range : float, fireRate : float, enemies : Array<Enemy>, projectiles : Array<Projectile>, portals : Array<Portal>, game : GameMain)
+  + move(newPos : Vector2)
+  + update(delta : float)
+  + render(batch : SpriteBatch)
+  + setWorldBounds(width : float, height : float)
+  + setCollisionRects(rects : Array<Rectangle>)
+  + setPositionSafe(x : float, y : float, searchRadius : float, step : float)
+}
+
+class PlayerCharacter {
+  - velocity : Vector2
+  - speed : float
+  - animator : PlayerAnimator
+  - currentFrame : TextureRegion
+  + PlayerCharacter(x : float, y : float)
+  + update(delta : float)
+  + render(batch : SpriteBatch)
+}
+
+class TowerBuilder {
+  - x : float
+  - y : float
+  - range : float
+  - fireRate : float
+  - projectileType : ProjectileType
+  - towerType : TowerType
+  - enemies : Array<Enemy>
+  - projectiles : Array<Projectile>
+  - towerId : int
+  - size : float
+  + TowerBuilder(x : float, y : float)
+  + withRange(range : float) : TowerBuilder
+  + withFireRate(fireRate : float) : TowerBuilder
+  + withProjectileType(type : ProjectileType) : TowerBuilder
+  + withTowerType(towerType : TowerType) : TowerBuilder
+  + withEnemies(enemies : Array<Enemy>) : TowerBuilder
+  + withProjectiles(projectiles : Array<Projectile>) : TowerBuilder
+  + withTowerId(towerId : int) : TowerBuilder
+  + withSize(size : float) : TowerBuilder
+  + build() : Tower
+}
+
+' Relations
+Enemy --|> GameObject
+Tower --|> GameObject
+PlayerTower --|> Tower
+PlayerCharacter --|> GameObject
+Projectile --|> GameObject
+TowerBuilder ..> Tower : creates
+Tower "1" --> "*" Enemy : targets
+Tower "1" --> "*" Projectile : fires
+PlayerTower "1" --> "*" Portal : has
+Projectile "1" --> "1" Enemy : target
+Projectile "1" --> "Array<Enemy>" : may reference for AOE
+
+@enduml
+\end{VerbatimOut}
+\ShellEscape{\PlantUMLCmd\space -tlatex:nopreamble general_overview.puml}
+
+\begin{figure}[H]
+  \centering
+  \resizebox{\linewidth}{!}{\UMLInput{general_overview}}
+\end{figure}
+
+\clearpage
+
+\subsection{Utiliser et étendre la librairie du moteur de jeu}
+L'extension se fait en ajoutant de nouveaux types d'entités ou de comportements :
+\begin{itemize}
+  \item \textbf{Extension :} créer une nouvelle classe héritant de \texttt{GameObject} ou enrichir
+        \texttt{Enemy}/\texttt{Tower} pour de nouveaux patterns d'attaque.
+  \item \textbf{Utilisation :} initialiser un \texttt{GameScreen} avec une map Tiled et ajuster la
+        stratégie de chemin via \texttt{PathStrategyFactory} (ou ajouter une nouvelle stratégie).
+\end{itemize}
+
+\subsubsection{Chargement de map Tiled et rendu (LibGDX)}
+Nous utilisons le chargeur \texttt{TmxMapLoader} et le renderer orthographique pour afficher
+les tuiles. Les objets Tiled (objets avec \texttt{gid}) sont rendus au-dessus des tiles via
+une passe dédiée.
+
+\CodeFile{core/src/main/java/io/github/Wasnowl/screens/GameScreen.java}
+\begin{lstlisting}
+map = new TmxMapLoader().load(mapPath);
+mapRenderer = new OrthogonalTiledMapRenderer(map, 1f);
+configureViewportForMap();
+
+mapRenderer.setView(camera);
+mapRenderer.render();
+\end{lstlisting}
+
+\CodeFile{core/src/main/java/io/github/Wasnowl/screens/GameScreen.java}
+\begin{lstlisting}
+for (MapLayer mapLayer : map.getLayers()) {
+    if (!(mapLayer instanceof TiledMapTileLayer)) {
+        MapObjects objects = mapLayer.getObjects();
+        for (MapObject obj : objects) {
+            Object gidObj = obj.getProperties().get("gid");
+            if (gidObj != null) {
+                int gid = ((Number) gidObj).intValue();
+                TiledMapTile tile = map.getTileSets().getTile(gid);
+                if (tile != null && tile.getTextureRegion() != null) {
+                    TextureRegion region = tile.getTextureRegion();
+                    float x = ((Number) obj.getProperties().get("x")).floatValue();
+                    float y = ((Number) obj.getProperties().get("y")).floatValue();
+                    batch.draw(region, x, y);
+                }
+            }
+        }
+    }
+}
+\end{lstlisting}
+
+\subsubsection{Collisions issues de Tiled}
+Le moteur transforme les objets Tiled (rectangles, polylines, ellipses, objets de tuile)
+en rectangles de collision. Ces rectangles sont ensuite testés à chaque mouvement du joueur.
+
+\CodeFile{core/src/main/java/io/github/Wasnowl/screens/GameScreen.java}
+\begin{lstlisting}
+private Array<Rectangle> buildCollisionRects() {
+    Array<Rectangle> rects = new Array<>();
+    for (MapLayer layer : map.getLayers()) {
+        if (layer instanceof TiledMapTileLayer) {
+            // collisions definies dans les tiles
+        } else {
+            MapObjects objects = layer.getObjects();
+            for (MapObject object : objects) {
+                addObjectCollisionRects(object, rects);
+            }
+        }
+    }
+    return rects;
+}
+\end{lstlisting}
+
+\CodeFile{core/src/main/java/io/github/Wasnowl/entities/PlayerTower.java}
+\begin{lstlisting}
+private boolean collidesAt(float x, float y) {
+    if (collisionRects == null || collisionRects.size == 0) return false;
+    updateHitbox(x, y);
+    for (Rectangle rect : collisionRects) {
+        if (hitbox.overlaps(rect)) return true;
+    }
+    return false;
+}
+\end{lstlisting}
+
+\begin{VerbatimOut}{collision_uml.puml}
+@startuml
+title Collisions issues de Tiled
+skinparam classAttributeIconSize 0
+
+class GameScreen {
+  - map : TiledMap
+  + buildCollisionRects() : Array<Rectangle>
+}
+class PlayerTower {
+  + setCollisionRects(rects : Array<Rectangle>)
+  + collidesAt(x : float, y : float) : boolean
+}
+class MapLayer
+class MapObjects
+class Rectangle
+
+GameScreen --> MapLayer : parcourt
+GameScreen --> MapObjects : lit
+GameScreen --> Rectangle : construit
+PlayerTower --> Rectangle : test overlap
+@enduml
+\end{VerbatimOut}
+\ShellEscape{\PlantUMLCmd\space -tlatex:nopreamble collision_uml.puml}
+\begin{figure}[H]
+  \centering
+  \resizebox{0.9\linewidth}{!}{\input{collision_uml.tex}}
+\end{figure}
+
+\subsubsection{Déplacement joueur et caméra}
+Le déplacement est désormais piloté par le contrôleur d'entrée : il calcule une direction
+continue et la transmet au modèle (joueur) et à la caméra. Cela évite les lectures directes
+dans les entités et renforce la séparation MVC.
+
+\CodeFile{core/src/main/java/io/github/Wasnowl/controllers/GameInputController.java}
+\begin{lstlisting}
+reusableDir.set(0f, 0f);
+if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.LEFT)
+        || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.Q)) {
+    reusableDir.x -= 1f;
+}
+if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.UP)
+        || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.Z)) {
+    reusableDir.y += 1f;
+}
+if (moveHandler != null) moveHandler.onMove(reusableDir);
+if (cameraMoveHandler != null) cameraMoveHandler.onMove(reusableDir, delta);
+\end{lstlisting}
+
+\CodeFile{core/src/main/java/io/github/Wasnowl/entities/PlayerTower.java}
+\begin{lstlisting}
+// movement now driven by inputDirection provided by GameInputController
+velocity.set(inputDirection);
+if (velocity.len2() > 0f) {
+    velocity.nor().scl(MOVE_SPEED);
+}
+\end{lstlisting}
+
+\subsubsection{Musique, options et JSON}
+La musique est centralisée via \texttt{MusicManager}, démarrée dans \texttt{GameMain}.
+Les écrans (menu, pause) modifient le volume avec un slider Scene2D, dont le style est
+chargé depuis \texttt{uiskin.json} (fichier JSON LibGDX).
+
+\CodeFile{core/src/main/java/io/github/Wasnowl/GameMain.java}
+\begin{lstlisting}
+musicManager = new MusicManager();
+musicManager.start();
+setScreen(new MainMenuScreen(this));
+\end{lstlisting}
+
+\CodeFile{core/src/main/java/io/github/Wasnowl/screens/MainMenuScreen.java}
+\begin{lstlisting}
+Slider volumeSlider = new Slider(
+    MusicManager.MIN_VOLUME_DB,
+    MusicManager.MAX_VOLUME_DB,
+    1f,
+    false,
+    skin
+);
+volumeSlider.addListener(new ChangeListener() {
+    @Override
+    public void changed(ChangeEvent event, Actor actor) {
+        game.getMusicManager().setVolumeDb(volumeSlider.getValue());
+    }
+});
+\end{lstlisting}
+
+\begin{VerbatimOut}{audio_uml.puml}
+@startuml
+title Gestion de la musique et options
+skinparam classAttributeIconSize 0
+
+class GameMain {
+  - musicManager : MusicManager
+  + create() : void
+  + getMusicManager() : MusicManager
+}
+class MusicManager {
+  + start() : void
+  + setVolumeDb(db : float) : void
+  + getVolumeDb() : float
+}
+class MainMenuScreen
+class GameScreen
+
+GameMain --> MusicManager : instancie
+MainMenuScreen --> GameMain : utilise
+GameScreen --> GameMain : utilise
+MainMenuScreen ..> MusicManager : regle volume
+GameScreen ..> MusicManager : regle volume
+@enduml
+\end{VerbatimOut}
+\ShellEscape{\PlantUMLCmd\space -tlatex:nopreamble audio_uml.puml}
+\begin{figure}[H]
+  \centering
+  \resizebox{0.75\linewidth}{!}{\input{audio_uml.tex}}
+\end{figure}
+
+\subsubsection{Lecture et manipulation de JSON}
+Nous utilisons un fichier JSON pour la mise en forme de l'interface Scene2D. Le fichier
+\texttt{uiskin.json} est chargé via \texttt{Skin} et définit les styles (boutons, labels, sliders).
+Cela illustre la lecture d'un fichier JSON côté LibGDX.
+
+\CodeFile{core/src/main/java/io/github/Wasnowl/screens/MainMenuScreen.java}
+\begin{lstlisting}
+skin = new Skin(Gdx.files.internal("uiskin.json"));
+\end{lstlisting}
+
+\subsubsection{UI Scene2D et multiplexage des entrées}
+L'interface (HUD, menus) s'appuie sur Scene2D. Le contrôleur d'entrée encapsule un
+\texttt{InputMultiplexer} pour faire cohabiter UI et gameplay.
+
+\CodeFile{core/src/main/java/io/github/Wasnowl/controllers/GameInputController.java}
+\begin{lstlisting}
+public void attach() {
+    multiplexer = new InputMultiplexer();
+    if (uiStage != null) multiplexer.addProcessor(uiStage);
+    multiplexer.addProcessor(adapter);
+    Gdx.input.setInputProcessor(multiplexer);
+}
+\end{lstlisting}
+
+\subsubsection{HUD, économie et vagues}
+L'économie repose sur \texttt{CurrencyManager} et le \texttt{WaveManager} notifie l'UI
+via des callbacks (or gagne / vie perdue). Cela montre une séparation nette entre logique
+de jeu et interface.
+
+\CodeFile{core/src/main/java/io/github/Wasnowl/managers/WaveManager.java}
+\begin{lstlisting}
+if (e.isDead()) {
+    if (e.hasReachedEndOfPath()) {
+        if (onLifeLost != null) onLifeLost.accept(getDamageForEnemyType(e.getEnemyType()));
+    } else {
+        currencyManager.add(getRewardForEnemyType(e.getEnemyType()));
+        if (onMoneyChanged != null) onMoneyChanged.run();
+    }
+    enemies.removeIndex(i);
+}
+\end{lstlisting}
+
+\CodeFile{core/src/main/java/io/github/Wasnowl/screens/GameScreen.java}
+\begin{lstlisting}
+waveManager.setOnMoneyChanged(() -> {
+    balanceLabel.setText("Gold: " + currencyManager.getBalance());
+});
+waveManager.setOnLifeLost(amount -> {
+    float currentHealth = gameState != null ? gameState.getPlayerHealth() : 0f;
+    setPlayerHealth(currentHealth - amount);
+});
+\end{lstlisting}
+
+\subsubsection{Transitions et multi-écrans}
+Les portails permettent de changer de map ou de basculer sur un écran de combat,
+ce qui illustre la gestion multi-screen de LibGDX.
+
+\CodeFile{core/src/main/java/io/github/Wasnowl/entities/PlayerTower.java}
+\begin{lstlisting}
+private void triggerMapChange(Portal portal) {
+    if (portal.getType() == Portal.Type.MAP) {
+        game.setScreen(new GameScreen(game, portal.getTarget()));
+    } else if (portal.getType() == Portal.Type.COMBAT) {
+        game.setScreen(new CombatScreen(game, portal.getTarget()));
+    }
+}
+\end{lstlisting}
+
+\subsubsection{Organisation MVC (partielle)}
+La transition MVC est amorcée avec un modèle central et des contrôleurs dédiés :
+\begin{itemize}
+  \item \textbf{Modèle :} \texttt{GameState} centralise l'état (joueur, vie, entités, économie) +
+        entités (\texttt{Enemy}, \texttt{Tower}, \texttt{Projectile}) et managers
+        (\texttt{WaveManager}, \texttt{CurrencyManager}, \texttt{ProjectileManager}).
+  \item \textbf{Vue :} rendu et animation (\texttt{TowerRenderer}, \texttt{EnemyAnimator}) et écrans
+        (\texttt{GameScreen}, \texttt{MainMenuScreen}, \texttt{GameOverScreen}).
+  \item \textbf{Contrôleur :} mise à jour du modèle (\texttt{GameController}) et entrées
+        (\texttt{GameInputController}, \texttt{PlacementController}).
+\end{itemize}
+Cette séparation reste volontairement légère mais facilite l'extension sans modifier le coeur du moteur.
+
+\CodeFile{core/src/main/java/io/github/Wasnowl/screens/GameScreen.java}
+\begin{lstlisting}
+gameState = new GameState();
+projectileManager = new ProjectileManager(gameState);
+waveManager = new WaveManager(gameState);
+gameController = new GameController(waveManager, projectileManager, player, towers, enemies, projectiles);
+\end{lstlisting}
+
+% Exemple "API moteur" (optionnel)
+\begin{lstlisting}
+// Exemple d'extension : création fluide d'une tour via le Builder
+Tower placed = new TowerBuilder(x, y)
+    .withRange(200f)
+    .withFireRate(1.5f)
+    .withTowerType(TowerType.SIMPLE)
+    .withEnemies(enemies)
+    .withProjectiles(projectiles)
+    .build();
+\end{lstlisting}
+
+\subsection{Répartition des Tâches}
+Le développement a été réparti par fonctionnalités pour garantir une progression parallèle :
+\begin{itemize}
+  \item \textbf{[Membre 1 à compléter]} : système de tours, projectiles et patterns associés.
+  \item \textbf{[Membre 2 à compléter]} : intégration Tiled, chemins et rendu map.
+  \item \textbf{[Membre 3 à compléter]} : UI, HUD, gestion des vagues et économie.
+\end{itemize}
+
+% ============================================================
+% Section 4. Conclusion et Perspectives
+% ============================================================
+\section{Conclusion et Perspectives}
+
+\subsection{Bilan}
+Le projet fournit un moteur 2D fonctionnel pour un tower defense : chargement de cartes Tiled,
+gestion de vagues, entités de base, UI et transitions. La structure actuelle est modulaire et
+permet d'ajouter du contenu sans modifier l'architecture centrale.
+
+\subsection{Autonomie et difficultés rencontrées}
+Les principaux points d'apprentissage et obstacles techniques ont été :
+\begin{itemize}
+  \item Comprendre le pipeline LibGDX (SpriteBatch, caméras, Viewport) et gérer le redimensionnement.
+  \item Intégrer Tiled : chargement TMX, rendu des objets \texttt{gid} et extraction des collisions.
+  \item Mettre en place les animations (TextureRegion, Animation) et synchroniser le rendu.
+  \item Gérer l'audio et les options de volume via Scene2D et \texttt{uiskin.json}.
+  \item Coordonner les entrées entre UI et gameplay grâce au \texttt{InputMultiplexer}.
+\end{itemize}
+
+\subsection{Améliorations futures}
+\begin{itemize}
+  \item Ajout d'un système de collision et de navigation plus avancé.
+  \item Équilibrage des vagues, progression et sauvegarde.
+  \item Effets visuels/sonores et animation plus riche.
+  \item Outils d'édition pour paramétrer les ennemis via Tiled.
+\end{itemize}
+
+% ============================================================
+% Annexes
+% ============================================================
+\appendix
+\section{Annexes}
+Références utiles :
+\begin{itemize}
+  \item Documentation LibGDX : \href{https://libgdx.com/}{https://libgdx.com/}
+  \item Documentation Tiled : \href{https://www.mapeditor.org/}{https://www.mapeditor.org/}
+\end{itemize}
+
+% Exemple annexe : commandes Gradle
+\begin{importantbox}[Option : commandes Gradle courantes]
+\begin{lstlisting}
+# Build
+./gradlew build
+
+# Lancer desktop (LWJGL3)
+./gradlew lwjgl3:run
+
+# Export jar
+./gradlew lwjgl3:jar
+\end{lstlisting}
+\end{importantbox}
+
+\end{document}

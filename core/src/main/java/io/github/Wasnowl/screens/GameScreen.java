@@ -67,6 +67,8 @@ public class GameScreen extends ScreenAdapter {
     private static final float CAMERA_MIN_ZOOM = 0.5f;
     private static final float CAMERA_MAX_ZOOM = 1f;
     private static final float CAMERA_ZOOM_STEP = 0.1f;
+    private static final float CAMERA_MOVE_SPEED = 200f;
+    private static final float DEFAULT_PLAYER_MAX_HEALTH = 20f;
     private static final String PAUSE_TITLE = "Pause";
     private static final String OPTIONS_TITLE = "Options";
     private static final String BLUR_VERTEX_SHADER =
@@ -131,8 +133,6 @@ public class GameScreen extends ScreenAdapter {
     private TextButton nextWaveButton;
     private TextButton towersButton;
     private Table hudTable;
-    private float playerMaxHealth = 20f;
-    private float playerHealth = 20f;
     private Table towerButtonTable;
     private Table bottomRightTable;
     private Window pauseWindow;
@@ -176,8 +176,8 @@ public class GameScreen extends ScreenAdapter {
         // GameState (central model)
         gameState = new GameState();
         gameState.setCurrencyManager(new CurrencyManager(50));
-        gameState.setPlayerHealth(playerHealth);
-        gameState.setPlayerMaxHealth(playerMaxHealth);
+        gameState.setPlayerMaxHealth(DEFAULT_PLAYER_MAX_HEALTH);
+        gameState.setPlayerHealth(DEFAULT_PLAYER_MAX_HEALTH);
         gameState.getTowers().clear();
         gameState.getEnemies().clear();
         gameState.getProjectiles().clear();
@@ -297,13 +297,15 @@ public class GameScreen extends ScreenAdapter {
                 shapeRenderer.setColor(Color.DARK_GRAY);
                 shapeRenderer.rect(x, y, barWidth, barHeight);
                 // Remplissage selon la vie
-                float ratio = Math.max(0, Math.min(1, playerHealth / playerMaxHealth));
+                float maxHealth = gameState != null ? gameState.getPlayerMaxHealth() : 0f;
+                float currentHealth = gameState != null ? gameState.getPlayerHealth() : 0f;
+                float ratio = maxHealth > 0f ? Math.max(0f, Math.min(1f, currentHealth / maxHealth)) : 0f;
                 shapeRenderer.setColor(Color.RED);
                 shapeRenderer.rect(x, y, barWidth * ratio, barHeight);
                 shapeRenderer.end();
                 batch.begin();
                 // Texte de vie
-                hudFont.draw(batch, (int)playerHealth + "/" + (int)playerMaxHealth, x + barWidth/2 - 12, y + barHeight - 3);
+                hudFont.draw(batch, (int)currentHealth + "/" + (int)maxHealth, x + barWidth/2 - 12, y + barHeight - 3);
             }
             public float getPrefWidth() { return 120f; }
             public float getPrefHeight() { return 18f; }
@@ -391,12 +393,23 @@ public class GameScreen extends ScreenAdapter {
                     togglePause();
                     return true;
                 }
+                if (keycode == com.badlogic.gdx.Input.Keys.SPACE && player != null) {
+                    camera.position.x = player.getPosition().x;
+                    camera.position.y = player.getPosition().y;
+                    return true;
+                }
                 return false;
             },
             (float amountX, float amountY) -> {
                 float nextZoom = camera.zoom + amountY * CAMERA_ZOOM_STEP;
                 camera.zoom = MathUtils.clamp(nextZoom, CAMERA_MIN_ZOOM, CAMERA_MAX_ZOOM);
                 return true;
+            },
+            (com.badlogic.gdx.math.Vector2 dir, float delta) -> {
+                if (dir == null || camera == null) return;
+                float speed = CAMERA_MOVE_SPEED * delta;
+                camera.position.x += dir.x * speed;
+                camera.position.y += dir.y * speed;
             }
         );
         inputController.attach();
@@ -408,9 +421,8 @@ public class GameScreen extends ScreenAdapter {
 
         // Callback pour gérer la perte de vie lorsque des ennemis atteignent la fin du chemin
         waveManager.setOnLifeLost(amount -> {
-            // Réduire la vie du joueur et mettre à jour la barre
-            setPlayerHealth(playerHealth - amount);
-            // Optionnel : vous pouvez afficher un message ou déclencher un son ici
+            float currentHealth = gameState != null ? gameState.getPlayerHealth() : 0f;
+            setPlayerHealth(currentHealth - amount);
         });
     }
 
@@ -420,17 +432,6 @@ public class GameScreen extends ScreenAdapter {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         renderBackgroundBlur();
-        if (!paused) {
-            handleCameraInput(delta);
-        }
-
-        viewport.apply();
-        camera.update();
-        mapRenderer.setView(camera);
-        mapRenderer.render();
-
-        // Rendre les object layers (buildings, trees, props, etc.)
-        renderMapObjectLayer(batch);
 
         if (!paused) {
             // Update input controller first (continuous input like movement)
@@ -444,6 +445,14 @@ public class GameScreen extends ScreenAdapter {
                  }
              }
          }
+
+        viewport.apply();
+        camera.update();
+        mapRenderer.setView(camera);
+        mapRenderer.render();
+
+        // Rendre les object layers (buildings, trees, props, etc.)
+        renderMapObjectLayer(batch);
 
         // Render
         batch.setProjectionMatrix(camera.combined);
@@ -479,19 +488,6 @@ public class GameScreen extends ScreenAdapter {
         if (uiStage != null) {
             uiStage.act(delta);
             uiStage.draw();
-        }
-    }
-
-    private void handleCameraInput(float delta) {
-        float speed = 200 * delta;
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.LEFT)) camera.position.x -= speed;
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.RIGHT)) camera.position.x += speed;
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.UP)) camera.position.y += speed;
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.DOWN)) camera.position.y -= speed;
-        // Centrer la caméra sur le joueur si ESPACE est pressé
-        if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.SPACE)) {
-            camera.position.x = player.getPosition().x;
-            camera.position.y = player.getPosition().y;
         }
     }
 
@@ -956,14 +952,14 @@ public class GameScreen extends ScreenAdapter {
 
     // Méthode pour mettre à jour la vie du joueur (à appeler lors de dégâts)
     private void setPlayerHealth(float value) {
-        this.playerHealth = Math.max(0, Math.min(playerMaxHealth, value));
-        if (gameState != null) gameState.setPlayerHealth(this.playerHealth);
-         // Si la vie atteint 0, passer à l'écran Game Over
-         if (this.playerHealth <= 0f) {
-             // nettoyer les ressources de l'écran actuel si besoin
-             // basculer d'écran (utilise la référence game)
-             game.setScreen(new GameOverScreen(game));
-         }
+        float maxHealth = gameState != null ? gameState.getPlayerMaxHealth() : 0f;
+        float clamped = Math.max(0f, Math.min(maxHealth, value));
+        if (gameState != null) {
+            gameState.setPlayerHealth(clamped);
+        }
+        if (clamped <= 0f) {
+            game.setScreen(new GameOverScreen(game));
+        }
     }
 
     private void setGameplayUiVisible(boolean visible) {
