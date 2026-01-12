@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.ArrayList;
 import io.github.Wasnowl.entities.Enemy;
 import io.github.Wasnowl.strategies.PathStrategyFactory;
-import java.util.Iterator;
+import java.util.function.IntConsumer;
 
 /**
  * WaveManager: gère le spawn des vagues. Pour la première vague on spawn 3 de chaque ennemi 1..4
@@ -22,6 +22,7 @@ public class WaveManager {
     private List<Integer> spawnQueue = new ArrayList<>();
     private CurrencyManager currencyManager;
     private Runnable onMoneyChanged; // Callback pour mettre à jour l'UI
+    private IntConsumer onLifeLost; // Callback pour notifier une perte de vie (int amount)
 
     // Configuration des vagues (exemple simple)
     private int[] waveSizes = {5, 10, 15}; // nombre d'ennemis par vague
@@ -36,6 +37,13 @@ public class WaveManager {
      */
     public void setOnMoneyChanged(Runnable callback) {
         this.onMoneyChanged = callback;
+    }
+
+    /**
+     * Définit une callback appelée quand le joueur perd des vies (amount)
+     */
+    public void setOnLifeLost(IntConsumer callback) {
+        this.onLifeLost = callback;
     }
 
     public void startNextWave() {
@@ -76,8 +84,14 @@ public class WaveManager {
             Enemy e = enemies.get(i);
             e.update(delta);
             if (e.isDead()) {
-                // Donner de l'argent si l'ennemi n'a pas atteint la fin du chemin
-                if (!e.hasReachedEndOfPath()) {
+                // Si l'ennemi a atteint la fin du chemin, le joueur perd des vies
+                if (e.hasReachedEndOfPath()) {
+                    if (onLifeLost != null) {
+                        int damage = getDamageForEnemyType(e.getEnemyType());
+                        onLifeLost.accept(damage); // perte de vies selon le type d'ennemi
+                    }
+                } else {
+                    // Donner de l'argent si l'ennemi n'a pas atteint la fin du chemin
                     int reward = getRewardForEnemyType(e.getEnemyType());
                     currencyManager.add(reward);
                     // Notifier que l'argent a changé
@@ -88,6 +102,17 @@ public class WaveManager {
                 enemies.removeIndex(i);
             }
         }
+    }
+
+    /**
+     * Retourne le montant de dégâts sur la vie selon le type d'ennemi.
+     * Par défaut, si le type n'est pas connu, on applique 1 point de dégât.
+     */
+    private int getDamageForEnemyType(int enemyType) {
+        if (enemyType >= 1 && enemyType <= 4) {
+            return enemyType; // type 1 => 1, type 2 => 2, etc.
+        }
+        return 1;
     }
 
     private void spawnEnemy() {
@@ -141,4 +166,3 @@ public class WaveManager {
         return currentWave;
     }
 }
-

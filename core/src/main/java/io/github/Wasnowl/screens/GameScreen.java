@@ -130,6 +130,8 @@ public class GameScreen extends ScreenAdapter {
     private TextButton nextWaveButton;
     private TextButton towersButton;
     private Table hudTable;
+    private float playerMaxHealth = 20f;
+    private float playerHealth = 20f;
     private Table towerButtonTable;
     private Table bottomRightTable;
     private Window pauseWindow;
@@ -254,7 +256,35 @@ public class GameScreen extends ScreenAdapter {
         hudTable.setFillParent(true);
         hudTable.top().left();
         hudTable.add(balanceLabel).pad(6).row();
-        hudTable.add(costLabel).pad(6);
+        hudTable.add(costLabel).pad(6).row();
+        // Ajout d'un conteneur pour la barre de vie
+        hudTable.add(new Actor() {
+            @Override
+            public void draw(com.badlogic.gdx.graphics.g2d.Batch batch, float parentAlpha) {
+                super.draw(batch, parentAlpha);
+                // Position et taille de la barre
+                float barWidth = 120f;
+                float barHeight = 18f;
+                float x = getX();
+                float y = getY();
+                // Fond (barre vide)
+                batch.end();
+                shapeRenderer.setProjectionMatrix(batch.getProjectionMatrix());
+                shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+                shapeRenderer.setColor(Color.DARK_GRAY);
+                shapeRenderer.rect(x, y, barWidth, barHeight);
+                // Remplissage selon la vie
+                float ratio = Math.max(0, Math.min(1, playerHealth / playerMaxHealth));
+                shapeRenderer.setColor(Color.RED);
+                shapeRenderer.rect(x, y, barWidth * ratio, barHeight);
+                shapeRenderer.end();
+                batch.begin();
+                // Texte de vie
+                hudFont.draw(batch, (int)playerHealth + "/" + (int)playerMaxHealth, x + barWidth/2 - 12, y + barHeight - 3);
+            }
+            public float getPrefWidth() { return 120f; }
+            public float getPrefHeight() { return 18f; }
+        }).pad(6);
         uiStage.addActor(hudTable);
 
         // Bottom-center button to open tower menu
@@ -357,6 +387,13 @@ public class GameScreen extends ScreenAdapter {
         // Callback pour mettre à jour l'UI quand l'argent change
         waveManager.setOnMoneyChanged(() -> {
             balanceLabel.setText("Gold: " + currencyManager.getBalance());
+        });
+
+        // Callback pour gérer la perte de vie lorsque des ennemis atteignent la fin du chemin
+        waveManager.setOnLifeLost(amount -> {
+            // Réduire la vie du joueur et mettre à jour la barre
+            setPlayerHealth(playerHealth - amount);
+            // Optionnel : vous pouvez afficher un message ou déclencher un son ici
         });
     }
 
@@ -897,6 +934,17 @@ public class GameScreen extends ScreenAdapter {
         pauseOptionsWindow.pack();
         centerWindow(pauseOptionsWindow);
         uiStage.addActor(pauseOptionsWindow);
+    }
+
+    // Méthode pour mettre à jour la vie du joueur (à appeler lors de dégâts)
+    private void setPlayerHealth(float value) {
+        this.playerHealth = Math.max(0, Math.min(playerMaxHealth, value));
+        // Si la vie atteint 0, passer à l'écran Game Over
+        if (this.playerHealth <= 0f) {
+            // nettoyer les ressources de l'écran actuel si besoin
+            // basculer d'écran (utilise la référence game)
+            game.setScreen(new GameOverScreen(game));
+        }
     }
 
     private void setGameplayUiVisible(boolean visible) {
