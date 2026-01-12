@@ -24,6 +24,7 @@ public class GameInputController {
     private final KeyDownHandler keyHandler;
     private final ScrollHandler scrollHandler;
     private final com.badlogic.gdx.math.Vector2 reusableDir = new com.badlogic.gdx.math.Vector2();
+    private final com.badlogic.gdx.math.Vector2 reusableCameraDir = new com.badlogic.gdx.math.Vector2();
 
     private InputMultiplexer multiplexer;
     private final InputAdapter adapter = new InputAdapter() {
@@ -93,27 +94,44 @@ public class GameInputController {
         if (isPaused != null && isPaused.getAsBoolean()) {
             // envoyer zéro
             if (moveHandler != null) moveHandler.onMove(reusableDir.set(0f, 0f));
-            if (cameraMoveHandler != null) cameraMoveHandler.onMove(reusableDir, delta);
+            if (cameraMoveHandler != null) cameraMoveHandler.onMove(reusableCameraDir.set(0f, 0f), delta);
             return;
         }
+
         reusableDir.set(0f, 0f);
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.LEFT) || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.A) || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.Q)) {
+        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.Q)
+                || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.A)) {
             reusableDir.x -= 1f;
         }
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.RIGHT) || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.D)) {
+        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.D)) {
             reusableDir.x += 1f;
         }
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.UP) || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.W) || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.Z)) {
+        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.Z)
+                || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.W)) {
             reusableDir.y += 1f;
         }
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.DOWN) || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.S)) {
+        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.S)) {
             reusableDir.y -= 1f;
         }
         if (moveHandler != null) {
             moveHandler.onMove(reusableDir);
         }
+
+        reusableCameraDir.set(0f, 0f);
+        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.LEFT)) {
+            reusableCameraDir.x -= 1f;
+        }
+        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.RIGHT)) {
+            reusableCameraDir.x += 1f;
+        }
+        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.UP)) {
+            reusableCameraDir.y += 1f;
+        }
+        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.DOWN)) {
+            reusableCameraDir.y -= 1f;
+        }
         if (cameraMoveHandler != null) {
-            cameraMoveHandler.onMove(reusableDir, delta);
+            cameraMoveHandler.onMove(reusableCameraDir, delta);
         }
     }
 }

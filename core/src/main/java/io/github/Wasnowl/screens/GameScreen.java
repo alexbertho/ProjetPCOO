@@ -126,6 +126,7 @@ public class GameScreen extends ScreenAdapter {
     private boolean placingPreview = false;
     private TowerType previewTowerType = null;
     private Vector2 previewPosition = new Vector2();
+    private final Vector2 cameraOffset = new Vector2();
     private ShapeRenderer shapeRenderer;
     private BitmapFont hudFont;
     private Label balanceLabel;
@@ -261,6 +262,7 @@ public class GameScreen extends ScreenAdapter {
         player.setPositionSafe(mapPixelWidth * 0.5f, mapPixelHeight * 0.5f, searchRadius, step);
         camera.zoom = MathUtils.clamp(CAMERA_DEFAULT_ZOOM, CAMERA_MIN_ZOOM, CAMERA_MAX_ZOOM);
         camera.position.set(player.getPosition().x, player.getPosition().y, 0f);
+        cameraOffset.set(0f, 0f);
         camera.update();
         setupBackgroundBlur();
 
@@ -393,9 +395,8 @@ public class GameScreen extends ScreenAdapter {
                     togglePause();
                     return true;
                 }
-                if (keycode == com.badlogic.gdx.Input.Keys.SPACE && player != null) {
-                    camera.position.x = player.getPosition().x;
-                    camera.position.y = player.getPosition().y;
+                if (keycode == com.badlogic.gdx.Input.Keys.SPACE) {
+                    cameraOffset.set(0f, 0f);
                     return true;
                 }
                 return false;
@@ -406,10 +407,10 @@ public class GameScreen extends ScreenAdapter {
                 return true;
             },
             (com.badlogic.gdx.math.Vector2 dir, float delta) -> {
-                if (dir == null || camera == null) return;
+                if (dir == null) return;
                 float speed = CAMERA_MOVE_SPEED * delta;
-                camera.position.x += dir.x * speed;
-                camera.position.y += dir.y * speed;
+                cameraOffset.x += dir.x * speed;
+                cameraOffset.y += dir.y * speed;
             }
         );
         inputController.attach();
@@ -445,6 +446,11 @@ public class GameScreen extends ScreenAdapter {
                  }
              }
          }
+
+        if (player != null) {
+            camera.position.x = player.getPosition().x + cameraOffset.x;
+            camera.position.y = player.getPosition().y + cameraOffset.y;
+        }
 
         viewport.apply();
         camera.update();
