@@ -164,11 +164,6 @@
 \section*{Équipe et Contributions}
 \addcontentsline{toc}{section}{Équipe et Contributions}
 
-\begin{consigne}[Consigne]
-Précisez en deux mots le rôle du membre (ex: \emph{\og développeur du moteur physique\fg{}}, \emph{\og développeur du gameplay\fg{}}).
-Chaque membre doit avoir contribué au code Java.
-\end{consigne}
-
 \begin{itemize}
   \item \textbf{BERTHO Alexandre} : Développeur du moteur jeu.
   \item \textbf{DRIDI Dylan} : Développeur du moteur jeu et gameplay.
@@ -187,11 +182,6 @@ et de proposer un prototype jouable mêlant tower defense et exploration. L'obje
 réutilisable et extensible pour créer rapidement de nouveaux niveaux, ajouter des types d'ennemis/tours et
 enrichir la logique de jeu sans réécrire l'architecture.
 
-\begin{consigne}[Exemple d'objectifs]
-Développer un moteur de jeu 2D extensible permettant d'ajouter du contenu sans modifier le code Java,
-ou implémenter un moteur de carte 2D pour un RPG gérant les positions via Tiled.
-\end{consigne}
-
 % ============================================================
 % Section 2. Présentation du projet
 % ============================================================
@@ -204,6 +194,9 @@ ou implémenter un moteur de carte 2D pour un RPG gérant les positions via Tile
   \item \textbf{Gradle} : Pour la compilation et la gestion des dépendances.
   \item \textbf{IntelliJ IDEA} : Environnement de développement intégré.
   \item \textbf{Git/GitHub} : Pour le versionnement et le partage.
+  \item \textbf{LaTeX} : Pour la rédaction du rapport.
+  \item \textbf{PlantUML} : Pour la création de diagrammes UML.
+  \item \textbf{Discord} : Pour la communication et la coordination de l'équipe.
 \end{itemize}
 
 \subsection{Fonctionnalités implémentées}
@@ -220,13 +213,6 @@ Le moteur propose un socle jouable avec des fonctionnalités clés pour un tower
   \item Menus (principal, pause, game over) et musique de fond avec options de volume.
 \end{itemize}
 
-% Option (facultatif) : exemple de listing
-\begin{lstlisting}
-// Selection d'un chemin via la Strategy pour la vague courante
-Vector2[] path = PathStrategyFactory.getStrategyForWave(currentWave).getPath();
-Enemy enemy = new Enemy(0, 0, path, 50f);
-\end{lstlisting}
-
 \subsection{Configuration et Ajout de Contenu avec Tiled}
 L'édition de contenu est pensée pour rester simple côté Tiled. Les cartes sont chargées
 dynamiquement et les objets Tiled sont interprétés côté moteur.
@@ -238,22 +224,7 @@ dynamiquement et les objets Tiled sont interprétés côté moteur.
         sont convertis en rectangles de collision pour le joueur et rendus comme éléments de décor.
 \end{itemize}
 
-% Exemple de structure "pas à pas" (optionnel)
-\begin{consigne}[Astuce de rédaction]
-Décris un \textbf{exemple concret} :
-\begin{itemize}
-  \item un fichier \texttt{maps/BeginningFields.tmx} ajouté,
-  \item une couche de tiles pour le décor,
-  \item une couche d'objets \texttt{Collisions} avec rectangles/polylines,
-  \item une couche d'objets décoratifs (objets avec \texttt{gid}),
-  \item et comment le moteur transforme ces objets en rectangles de collision utilisés par \texttt{PlayerTower}.
-\end{itemize}
-\end{consigne}
-
 \subsection{Compilation et exécution}
-\begin{consigne}
-Présentez comment \textbf{compiler et exécuter} votre projet.
-\end{consigne}
 
 \begin{enumerate}
   \item \textbf{Prérequis :} JDK 8+ installé, Gradle Wrapper fourni dans le dépôt.
@@ -262,7 +233,25 @@ Présentez comment \textbf{compiler et exécuter} votre projet.
   \item \textbf{Compilation :} \texttt{./gradlew} \texttt{lwjgl3:jar} (JAR dans \texttt{lwjgl3/build/libs}) ou \texttt{./gradlew} \texttt{build}.
 \end{enumerate}
 
+% Exemple annexe : commandes Gradle
+\begin{importantbox}[Option : commandes Gradle courantes]
+\begin{lstlisting}
+# Permission pour executer sous Linux/macOS
+chmod u+x gradlew
+
+# Build
+./gradlew build
+
+# Lancer desktop (LWJGL3)
+./gradlew lwjgl3:run
+
+# Export jar
+./gradlew lwjgl3:jar
+\end{lstlisting}
+\end{importantbox}
+
 \noindent\textbf{Lien vers le dépôt GitHub :} \GitHubLink
+
 
 \HRule
 \vspace{0.2cm}
@@ -283,9 +272,9 @@ Le projet est structuré en modules \texttt{core} (logique partagée) et \texttt
   \item \textbf{Managers} : \texttt{WaveManager}, \texttt{ProjectileManager}, \texttt{ProjectilePool},\\
         \texttt{CurrencyManager}, \texttt{MusicManager}, \texttt{EnemyAssetManager}, \texttt{TowerAssetManager},
         \texttt{ProjectileAssetManager}.
-  \item \textbf{UI / Contrôleurs} : \texttt{UIManager}, \texttt{GameInputController}, \texttt{PlacementController},
-        \texttt{GameController}.
-  \item \textbf{Modèle central} : \texttt{GameState} regroupe l'état partagé (joueur, vagues, entités, économie).
+  \item \textbf{UI / Contrôleurs} : \texttt{UIManager}, \texttt{GameInputController},
+        \texttt{PlacementController}, \texttt{GameController}.
+  \item \textbf{Modèle central} : \texttt{GameState} regroupe l'état partagé (joueur, entités, économie).
   \item \textbf{Stratégies} : \texttt{PathStrategy} + \texttt{PathStrategyFactory} pour sélectionner le chemin des vagues.
 \end{itemize}
 
@@ -506,15 +495,6 @@ Projectile ..> "Array<Enemy>" : may reference for AOE
 ProjectileType "1" *-- "0..1" TextureRegion : flyweight texture
 ProjectileType "1" *-- "0..1" Animation : flyweight animation
 
-' Notes
-note right of ProjectilePool
-  Singleton pool that creates Projectile or
-  RicochetProjectile based on ProjectileType.
-end note
-
-note left of ProjectileTypeFactory
-  Flyweight factory for projectile intrinsic data.
-end note
 
 @enduml
 
@@ -524,7 +504,7 @@ end note
 % 3) On inclut le TikZ généré
 \begin{figure}[H]
   \centering
-  \resizebox{0.5\linewidth}{!}{\UMLInput{pattern_factory}}
+  \resizebox{1.1\linewidth}{!}{\UMLInput{pattern_factory}}
 \end{figure}
 
 \clearpage
@@ -672,7 +652,7 @@ ProjectileManager --> ProjectilePool : recycle
 % 3) On inclut le TikZ généré
 \begin{figure}[H]
   \centering
-  \resizebox{0.85\linewidth}{!}{\UMLInput{pattern_manager}}
+  \resizebox{0.6\linewidth}{!}{\UMLInput{pattern_manager}}
 \end{figure}
 
 \clearpage
@@ -724,13 +704,6 @@ Pour une approche plus générique et réutilisable, il serait possible de défi
 Vector2[] path = PathStrategyFactory.getStrategyForWave(currentWave).getPath();
 Enemy enemy = new Enemy(0, 0, path, 50f);
 \end{lstlisting}
-
-\subsubsection{UML - Sous-système Projectile}
-La structure du sous-système Projectile s'appuie sur la factory et le flyweight.
-\begin{figure}[H]
-  \centering
-  \resizebox{0.5\linewidth}{!}{\UMLInput{pattern_factory}}
-\end{figure}
 
 \subsubsection{UML - Vue générale de GameObject}
 \begin{VerbatimOut}{general_overview.puml}
@@ -999,9 +972,9 @@ PlayerTower --> Rectangle : test overlap
 \end{figure}
 
 \subsubsection{Déplacement joueur et caméra}
-Le déplacement est désormais piloté par le contrôleur d'entrée : il calcule une direction
-continue et la transmet au modèle (joueur) et à la caméra. Cela évite les lectures directes
-dans les entités et renforce la séparation MVC.
+Le déplacement est désormais piloté par le contrôleur d'entrée. Il calcule la direction
+continue et la transmet au joueur et à la caméra, ce qui évite les lectures directes dans
+les entités et renforce la séparation MVC.
 
 \CodeFile{core/src/main/java/io/github/Wasnowl/controllers/GameInputController.java}
 \begin{lstlisting}
@@ -1098,8 +1071,8 @@ skin = new Skin(Gdx.files.internal("uiskin.json"));
 \end{lstlisting}
 
 \subsubsection{UI Scene2D et multiplexage des entrées}
-L'interface (HUD, menus) s'appuie sur Scene2D. Le contrôleur d'entrée encapsule un
-\texttt{InputMultiplexer} pour faire cohabiter UI et gameplay.
+L'interface (HUD, menus) est basée sur Scene2D. Le contrôleur d'entrée encapsule un
+\texttt{InputMultiplexer} pour faire cohabiter les interactions UI et les contrôles du jeu.
 
 \CodeFile{core/src/main/java/io/github/Wasnowl/controllers/GameInputController.java}
 \begin{lstlisting}
@@ -1235,18 +1208,5 @@ Références utiles :
   \item Documentation Tiled : \href{https://www.mapeditor.org/}{https://www.mapeditor.org/}
 \end{itemize}
 
-% Exemple annexe : commandes Gradle
-\begin{importantbox}[Option : commandes Gradle courantes]
-\begin{lstlisting}
-# Build
-./gradlew build
-
-# Lancer desktop (LWJGL3)
-./gradlew lwjgl3:run
-
-# Export jar
-./gradlew lwjgl3:jar
-\end{lstlisting}
-\end{importantbox}
 
 \end{document}
