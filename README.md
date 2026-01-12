@@ -33,9 +33,13 @@ Construire un JAR exécutable :
 
 Le JAR est généré dans `lwjgl3/build/libs`.
 
-## Autres commandes utiles
+## Contrôles
 
-```bash
-./gradlew clean
-./gradlew build
-```
+| Touche | Action |
+| --- | --- |
+| `ZQSD` | Déplacer le joueur (clavier AZERTY) |
+| `WASD` | Déplacer le joueur (clavier QWERTY) |
+| `Flèches` | Déplacer la caméra |
+| `Espace` | Recentrer la caméra sur le joueur |
+| `Molette` | Zoom caméra |
+| `Échap` | Pause |
