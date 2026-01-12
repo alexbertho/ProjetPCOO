@@ -12,6 +12,15 @@ public class RicochetProjectile extends Projectile {
     private int bouncesRemaining;
     private Array<Enemy> hitEnemies; // Pour éviter de richocher 2x sur le même ennemi
 
+    /**
+     * Cree un projectile ricochet avec portee et nombre de rebonds.
+     * @param start position de depart
+     * @param target cible visee
+     * @param type type de projectile
+     * @param allEnemies liste d'ennemis
+     * @param ricochetRange portee de ricochet
+     * @param maxBounces nombre max de rebonds
+     */
     public RicochetProjectile(Vector2 start, Enemy target, ProjectileType type, 
                              Array<Enemy> allEnemies, float ricochetRange, int maxBounces) {
         super(start, target, type, allEnemies);
@@ -22,6 +31,10 @@ public class RicochetProjectile extends Projectile {
 
     /**
      * Reset pour la réutilisation depuis le pool
+     * @param start position de depart
+     * @param target cible visee
+     * @param type type de projectile
+     * @param allEnemies liste d'ennemis
      */
     @Override
     public void reset(Vector2 start, Enemy target, ProjectileType type, Array<Enemy> allEnemies) {
@@ -30,6 +43,9 @@ public class RicochetProjectile extends Projectile {
         this.hitEnemies.clear(); // Réinitialiser la liste des ennemis frappés
     }
 
+    /**
+     * Gere l'impact puis tente un ricochet vers une nouvelle cible.
+     */
     @Override
     protected void handleImpact() {
         if (target != null && !target.isDead()) {
@@ -79,6 +95,10 @@ public class RicochetProjectile extends Projectile {
         return closest;
     }
 
+    /**
+     * Met a jour le deplacement en tenant compte des ricochets.
+     * @param delta temps ecoule (secondes)
+     */
     @Override
     public void update(float delta) {
         if (target == null || target.isDead()) {

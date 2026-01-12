@@ -16,6 +16,15 @@ public class GameController {
     private final Array<Enemy> enemies;
     private final Array<Projectile> projectiles;
 
+    /**
+     * Construit le controleur principal qui orchestre les updates du modele.
+     * @param waveManager gestionnaire des vagues
+     * @param projectileManager gestionnaire des projectiles
+     * @param player joueur courant
+     * @param towers liste des tours
+     * @param enemies liste des ennemis
+     * @param projectiles liste des projectiles
+     */
     public GameController(WaveManager waveManager,
                           ProjectileManager projectileManager,
                           PlayerTower player,
@@ -31,7 +40,8 @@ public class GameController {
     }
 
     /**
-     * Met à jour l'état du jeu (modèle) : vagues, joueur, tours, projectiles.
+     * Met a jour l'etat du jeu (modele) : vagues, joueur, tours, projectiles.
+     * @param delta temps ecoule (secondes)
      */
     public void update(float delta) {
         if (waveManager != null) waveManager.update(delta);
@@ -44,4 +54,3 @@ public class GameController {
         if (projectileManager != null) projectileManager.update(delta);
     }
 }
-

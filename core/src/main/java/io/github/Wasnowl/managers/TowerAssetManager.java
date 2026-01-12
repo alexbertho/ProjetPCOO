@@ -19,6 +19,10 @@ public class TowerAssetManager {
     private TowerAssetManager() {
     }
     
+    /**
+     * Retourne l'instance singleton du manager.
+     * @return instance unique
+     */
     public static TowerAssetManager getInstance() {
         if (instance == null) {
             instance = new TowerAssetManager();
@@ -29,6 +33,8 @@ public class TowerAssetManager {
     /**
      * Charge la texture d'une tour par son ID
      * Ex: loadTowerTexture(7) charge "assets/towersidle/7.png"
+     * @param towerId id de la tour
+     * @return texture chargee ou null
      */
     public TextureRegion loadTowerTexture(int towerId) {
         if (cachedTextures.containsKey(towerId)) {
@@ -54,6 +60,7 @@ public class TowerAssetManager {
      * @param towerId ID du fichier (exemple: 7 -> towers/Idle/7.png)
      * @param cols Nombre de colonnes
      * @param rows Nombre de lignes
+     * @return frames d'animation ou null
      */
     public TextureRegion[] loadTowerAnimationFromSpritesheet(int towerId, int cols, int rows) {
         try {

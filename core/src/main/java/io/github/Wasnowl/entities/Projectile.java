@@ -11,18 +11,38 @@ import io.github.Wasnowl.GameObject;
  * - État extrinsèque : position, target, velocity (uniques pour chaque instance)
  */
 public class Projectile extends GameObject {
-    protected ProjectileType type;  // Flyweight intrinsic state
+    /** Type de projectile (flyweight). */
+    protected ProjectileType type;
+    /** Vitesse courante. */
     protected Vector2 velocity;
+    /** Cible actuelle. */
     protected Enemy target;
-    protected Array<Enemy> allEnemies;  // pour dégâts AOE
+    /** Liste d'ennemis (AOE). */
+    protected Array<Enemy> allEnemies;
+    /** Indique si le projectile est termine. */
     protected boolean dead = false;
-    protected com.badlogic.gdx.graphics.g2d.TextureRegion texture; // Texture du projectile pour rendu
-    protected float stateTime = 0f; // pour l'animation
+    /** Texture du projectile pour rendu. */
+    protected com.badlogic.gdx.graphics.g2d.TextureRegion texture;
+    /** Temps d'animation cumule. */
+    protected float stateTime = 0f;
 
+    /**
+     * Cree un projectile vers une cible.
+     * @param start position de depart
+     * @param target cible visee
+     * @param type type de projectile
+     */
     public Projectile(Vector2 start, Enemy target, ProjectileType type) {
         this(start, target, type, null);
     }
 
+    /**
+     * Cree un projectile avec reference a la liste d'ennemis (AOE).
+     * @param start position de depart
+     * @param target cible visee
+     * @param type type de projectile
+     * @param allEnemies liste d'ennemis (AOE)
+     */
     public Projectile(Vector2 start, Enemy target, ProjectileType type, Array<Enemy> allEnemies) {
         super(start.x, start.y);
         this.type = type;
@@ -35,6 +55,10 @@ public class Projectile extends GameObject {
 
     /**
      * Reset the projectile to reuse from a pool.
+     * @param start position de depart
+     * @param target cible visee
+     * @param type type de projectile
+     * @param allEnemies liste d'ennemis (AOE)
      */
     public void reset(Vector2 start, Enemy target, ProjectileType type, Array<Enemy> allEnemies) {
         this.position.set(start.x, start.y);
@@ -69,6 +93,10 @@ public class Projectile extends GameObject {
         }
     }
 
+    /**
+     * Met a jour la trajectoire et gere l'impact.
+     * @param delta temps ecoule (secondes)
+     */
     @Override
     public void update(float delta) {
         stateTime += delta;
@@ -95,6 +123,9 @@ public class Projectile extends GameObject {
         position.add(velocity.cpy().scl(delta));
     }
 
+    /**
+     * Applique les degats sur la cible ou en AOE.
+     */
     protected void handleImpact() {
         if (type.isAOE()) {
             // AOE : infliger dégâts à tous les ennemis dans le rayon
@@ -114,6 +145,10 @@ public class Projectile extends GameObject {
         }
     }
 
+    /**
+     * Rend le projectile (texture ou animation).
+     * @param batch sprite batch actif
+     */
     @Override
     public void render(SpriteBatch batch) {
         if (type != null) {
@@ -139,23 +174,33 @@ public class Projectile extends GameObject {
 
     /**
      * Définit la texture du projectile (deprecated - utiliser ProjectileAssetManager)
+     * @param tex texture a utiliser
      */
     public void setTexture(com.badlogic.gdx.graphics.g2d.TextureRegion tex) {
         this.texture = tex;
     }
 
+    /**
+     * Indique si le projectile est a detruire.
+     * @return true si mort
+     */
     public boolean isDead() {
         return dead;
     }
 
+    /**
+     * Retourne le type de projectile (flyweight).
+     * @return type
+     */
     public ProjectileType getType() {
         return type;
     }
 
+    /**
+     * Retourne la cible courante.
+     * @return cible ou null
+     */
     public Enemy getTarget() {
         return target;
     }
 }
-
-
-

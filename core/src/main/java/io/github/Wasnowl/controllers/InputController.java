@@ -15,10 +15,19 @@ public class InputController extends InputAdapter {
     private boolean left, right, up, down;
     private float speed = 300f;
 
+    /**
+     * Cree un controleur d'entree associe a la camera.
+     * @param camera camera a deplacer
+     */
     public InputController(OrthographicCamera camera) {
         this.camera = camera;
     }
 
+    /**
+     * Met a jour les directions actives lors d'une pression de touche.
+     * @param keycode touche pressee
+     * @return false pour laisser passer l'input
+     */
     @Override
     public boolean keyDown(int keycode) {
         if (keycode == Input.Keys.LEFT || keycode == Input.Keys.A || keycode == Input.Keys.Q) left = true;
@@ -28,6 +37,11 @@ public class InputController extends InputAdapter {
         return false;
     }
 
+    /**
+     * Met a jour les directions actives lors d'un relachement de touche.
+     * @param keycode touche relachee
+     * @return false pour laisser passer l'input
+     */
     @Override
     public boolean keyUp(int keycode) {
         if (keycode == Input.Keys.LEFT || keycode == Input.Keys.A || keycode == Input.Keys.Q) left = false;
@@ -37,10 +51,18 @@ public class InputController extends InputAdapter {
         return false;
     }
 
+    /**
+     * Retourne l'InputProcessor a brancher au multiplexer.
+     * @return input processor
+     */
     public InputProcessor getInputProcessor() {
         return this;
     }
 
+    /**
+     * Applique le mouvement a la camera selon les touches maintenues.
+     * @param delta temps ecoule (secondes)
+     */
     public void update(float delta) {
         float move = speed * delta;
         boolean moved = false;

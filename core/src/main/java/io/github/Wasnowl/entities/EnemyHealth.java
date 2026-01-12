@@ -6,7 +6,7 @@ import io.github.Wasnowl.managers.EnemyAssetManager;
 /**
  * EnemyHealth : gère la vie et les transitions d'état basées sur les HP
  * Responsabilité unique : système de santé et logique de transition
- * Lazy loading: walk2 est chargé seulement à la première transition <50%HP
+ * Lazy loading: walk2 est charge seulement a la premiere transition &lt;50%HP
  */
 public class EnemyHealth {
     private float maxHealth;
@@ -15,18 +15,28 @@ public class EnemyHealth {
     private int enemyId = -1; // Pour lazy loading de walk2
     private boolean walk2Loaded = false;
 
+    /**
+     * Cree un composant de vie avec un maximum et un animateur associe.
+     * @param maxHealth vie maximale
+     * @param animator animateur lie
+     */
     public EnemyHealth(float maxHealth, EnemyAnimator animator) {
         this.maxHealth = maxHealth;
         this.health = maxHealth;
         this.animator = animator;
     }
 
+    /**
+     * Definit l'identifiant d'ennemi pour le chargement lazy.
+     * @param id identifiant d'ennemi
+     */
     public void setEnemyId(int id) {
         this.enemyId = id;
     }
 
     /**
      * Applique des dégâts et mets à jour l'état d'animation si nécessaire
+     * @param amount degats a appliquer
      */
     public void takeDamage(float amount) {
         health = Math.max(0f, health - amount);
@@ -70,7 +80,7 @@ public class EnemyHealth {
     }
 
     /**
-     * Appelé chaque frame pour vérifier si la mort est complète
+     * Appele chaque frame pour verifier si la mort est complete.
      */
     public void update() {
         if (animator.getState() == EnemyAnimator.State.DEATH && animator.isDeathFinished()) {
@@ -78,14 +88,26 @@ public class EnemyHealth {
         }
     }
 
+    /**
+     * Retourne la vie courante.
+     * @return vie courante
+     */
     public float getHealth() {
         return health;
     }
 
+    /**
+     * Retourne la vie maximale.
+     * @return vie max
+     */
     public float getMaxHealth() {
         return maxHealth;
     }
 
+    /**
+     * Indique si l'ennemi est marque comme mort.
+     * @return true si mort
+     */
     public boolean isDead() {
         return animator.getState() == EnemyAnimator.State.DEAD;
     }

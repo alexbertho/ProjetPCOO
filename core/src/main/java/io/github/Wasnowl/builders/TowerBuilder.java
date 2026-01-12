@@ -25,52 +25,101 @@ public class TowerBuilder {
     private int towerId = 7; // ID du sprite de la tour (défaut: 7)
     private float size = 32f; // taille du sprite en pixels
 
+    /**
+     * Cree un builder pour une tour a une position donnee.
+     * @param x position X
+     * @param y position Y
+     */
     public TowerBuilder(float x, float y) {
         this.x = x;
         this.y = y;
     }
 
+    /**
+     * Definit la portee de la tour.
+     * @param range portee
+     * @return builder courant
+     */
     public TowerBuilder withRange(float range) {
         this.range = range;
         return this;
     }
 
+    /**
+     * Definit la cadence de tir.
+     * @param fireRate cadence de tir
+     * @return builder courant
+     */
     public TowerBuilder withFireRate(float fireRate) {
         this.fireRate = fireRate;
         return this;
     }
 
+    /**
+     * Definit le type de projectile utilise.
+     * @param type type de projectile
+     * @return builder courant
+     */
     public TowerBuilder withProjectileType(ProjectileType type) {
         this.projectileType = type;
         return this;
     }
 
+    /**
+     * Definit le type de tour (et donc le projectile associe).
+     * @param towerType type de tour
+     * @return builder courant
+     */
     public TowerBuilder withTowerType(TowerType towerType) {
         this.towerType = towerType;
         if (towerType != null) this.projectileType = towerType.getProjectileType();
         return this;
     }
 
+    /**
+     * Fournit la liste d'ennemis ciblee par la tour.
+     * @param enemies liste d'ennemis
+     * @return builder courant
+     */
     public TowerBuilder withEnemies(Array<Enemy> enemies) {
         this.enemies = enemies;
         return this;
     }
 
+    /**
+     * Fournit la liste globale des projectiles.
+     * @param projectiles liste de projectiles
+     * @return builder courant
+     */
     public TowerBuilder withProjectiles(Array<Projectile> projectiles) {
         this.projectiles = projectiles;
         return this;
     }
     
+    /**
+     * Definit l'identifiant de sprite de la tour.
+     * @param towerId id du sprite
+     * @return builder courant
+     */
     public TowerBuilder withTowerId(int towerId) {
         this.towerId = towerId;
         return this;
     }
     
+    /**
+     * Definit la taille du sprite.
+     * @param size taille du sprite
+     * @return builder courant
+     */
     public TowerBuilder withSize(float size) {
         this.size = size;
         return this;
     }
 
+    /**
+     * Construit la tour configuree.
+     * @return tour construite
+     */
     public Tower build() {
         if (enemies == null || projectiles == null) {
             throw new IllegalStateException("enemies et projectiles doivent être définis");

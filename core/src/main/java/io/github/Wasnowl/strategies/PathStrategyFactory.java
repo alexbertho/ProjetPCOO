@@ -6,7 +6,11 @@ package io.github.Wasnowl.strategies;
  */
 public class PathStrategyFactory {
 
+    /**
+     * Types de chemins disponibles.
+     */
     public enum PathType {
+        /** Chemin principal. */
         MAIN,
         // Ajoute d'autres types ici au besoin (ALTERNATE, SHORTCUT, etc.)
     }

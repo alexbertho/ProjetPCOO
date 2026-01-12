@@ -58,6 +58,10 @@ import com.badlogic.gdx.math.MathUtils;
 import io.github.Wasnowl.controllers.GameController;
 import io.github.Wasnowl.model.GameState;
 
+/**
+ * Ecran principal du jeu tower defense.
+ * Charge la map Tiled, gere entites, collisions, UI et camera.
+ */
 public class GameScreen extends ScreenAdapter {
     private final GameMain game;
     private String mapPath = "maps/BeginningFields.tmx";
@@ -152,16 +156,27 @@ public class GameScreen extends ScreenAdapter {
     private GameInputController inputController;
     private GameController gameController;
 
-
+    /**
+     * Cree l'ecran principal avec la map par defaut.
+     * @param game instance du jeu
+     */
     public GameScreen(GameMain game) {
         this.game = game;
     }
 
+    /**
+     * Cree l'ecran principal avec un chemin de map specifique.
+     * @param game instance du jeu
+     * @param mapPath chemin de la map
+     */
     public GameScreen(GameMain game, String mapPath) {
         this.game = game;
         this.mapPath = mapPath;
     }
 
+    /**
+     * Charge la map, initialise les entites, UI et controleurs.
+     */
     @Override
     public void show() {
 
@@ -427,6 +442,10 @@ public class GameScreen extends ScreenAdapter {
         });
     }
 
+    /**
+     * Met a jour la logique et rend la scene.
+     * @param delta temps ecoule (secondes)
+     */
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0, 0, 0, 1);
@@ -497,6 +516,11 @@ public class GameScreen extends ScreenAdapter {
         }
     }
 
+    /**
+     * Met a jour les viewports lors d'un resize.
+     * @param width largeur
+     * @param height hauteur
+     */
     @Override
     public void resize(int width, int height) {
         if (viewport != null) viewport.update(width, height);
@@ -506,6 +530,9 @@ public class GameScreen extends ScreenAdapter {
         centerWindow(pauseOptionsWindow);
     }
 
+    /**
+     * Libere les ressources de l'ecran.
+     */
     @Override
     public void dispose() {
         map.dispose();

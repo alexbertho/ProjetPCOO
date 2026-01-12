@@ -37,6 +37,9 @@ public class UIManager {
 
     private List<Consumer<TowerType>> towerSelectionListeners = new ArrayList<>();
 
+    /**
+     * Construit le HUD et le menu de selection des tours.
+     */
     public UIManager() {
         skin = new Skin(Gdx.files.internal("uiskin.json"));
         stage = new Stage(new ScreenViewport());
@@ -67,34 +70,65 @@ public class UIManager {
         });
     }
 
+    /**
+     * Retourne l'InputProcessor de la UI.
+     * @return input processor UI
+     */
     public InputProcessor getInputProcessor() {
         return stage;
     }
 
+    /**
+     * Ajoute un listener appele lors du choix d'une tour.
+     * @param listener listener de selection
+     */
     public void addTowerSelectionListener(Consumer<TowerType> listener) {
         towerSelectionListeners.add(listener);
     }
 
+    /**
+     * Met a jour l'affichage du solde.
+     * @param amount solde a afficher
+     */
     public void setBalance(int amount) {
         balanceLabel.setText("Gold: " + amount);
     }
 
+    /**
+     * Met a jour le texte de cout (previsualisation).
+     * @param text texte a afficher
+     */
     public void setCostText(String text) {
         costLabel.setText(text);
     }
 
+    /**
+     * Met a jour les animations UI.
+     * @param delta temps ecoule (secondes)
+     */
     public void act(float delta) {
         stage.act(delta);
     }
 
+    /**
+     * Dessine l'UI.
+     */
     public void draw() {
         stage.draw();
     }
 
+    /**
+     * Met a jour la taille du viewport UI.
+     * @param width largeur
+     * @param height hauteur
+     */
     public void resize(int width, int height) {
         stage.getViewport().update(width, height, true);
     }
 
+    /**
+     * Libere les ressources de la UI.
+     */
     public void dispose() {
         if (stage != null) stage.dispose();
         if (skin != null) skin.dispose();

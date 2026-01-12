@@ -31,6 +31,8 @@ public class ProjectileTypeFactory {
 
     /**
      * Récupère un type enum directement.
+     * @param type type a retourner
+     * @return type de projectile
      */
     public static ProjectileType getType(ProjectileType type) {
         return type;

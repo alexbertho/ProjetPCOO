@@ -8,6 +8,10 @@ import com.badlogic.gdx.math.Vector2;
  */
 public class MainPathStrategy implements PathStrategy {
 
+    /**
+     * Retourne la liste de points du chemin principal.
+     * @return points du chemin
+     */
     @Override
     public Vector2[] getPath() {
         return new Vector2[] {
@@ -19,6 +23,10 @@ public class MainPathStrategy implements PathStrategy {
         };
     }
 
+    /**
+     * Retourne le nom du chemin.
+     * @return nom du chemin
+     */
     @Override
     public String getName() {
         return "Main Path";

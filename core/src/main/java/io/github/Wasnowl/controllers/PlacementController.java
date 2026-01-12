@@ -32,6 +32,15 @@ public class PlacementController {
     private TowerType previewType = null;
     private final Vector2 previewPos = new Vector2();
 
+    /**
+     * Construit le controleur de placement des tours.
+     * @param viewport viewport actif
+     * @param towers liste des tours
+     * @param enemies liste des ennemis
+     * @param projectiles liste des projectiles
+     * @param currencyManager gestionnaire d'argent
+     * @param uiManager gestionnaire UI
+     */
     public PlacementController(Viewport viewport,
                                Array<Tower> towers,
                                Array<Enemy> enemies,
@@ -92,26 +101,46 @@ public class PlacementController {
         };
     }
 
+    /**
+     * Retourne l'InputProcessor gere par ce controleur.
+     * @return input processor
+     */
     public InputProcessor getInputProcessor() {
         return inputAdapter;
     }
 
+    /**
+     * Active le mode previsualisation pour un type de tour.
+     * @param type type de tour a placer
+     */
     public void startPreview(TowerType type) {
         this.previewType = type;
         this.placing = true;
         uiManager.setCostText("Cost: " + type.getCost());
     }
 
+    /**
+     * Annule la previsualisation en cours.
+     */
     public void cancelPreview() {
         this.placing = false;
         this.previewType = null;
         uiManager.setCostText("");
     }
 
+    /**
+     * Indique si une previsualisation est active.
+     * @return true si placement actif
+     */
     public boolean isPlacing() {
         return placing;
     }
 
+    /**
+     * Affiche la previsualisation de placement (rectangle colore).
+     * @param shapeRenderer renderer de formes
+     * @param camera camera de la scene
+     */
     public void renderPreview(ShapeRenderer shapeRenderer, OrthographicCamera camera) {
         if (!placing || previewType == null) return;
         Vector3 mouse = new Vector3(com.badlogic.gdx.Gdx.input.getX(), com.badlogic.gdx.Gdx.input.getY(), 0);

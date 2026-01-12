@@ -10,6 +10,10 @@ import io.github.Wasnowl.GameMain;
 import io.github.Wasnowl.screens.GameScreen;
 import io.github.Wasnowl.entities.Portal;
 
+/**
+ * Joueur controle sur la map principale.
+ * Gere deplacement, collisions et transitions via portails.
+ */
 public class PlayerTower extends Tower {
     private static final float MOVE_SPEED = 180f;
     private static final float HITBOX_WIDTH = 16f;
@@ -27,6 +31,17 @@ public class PlayerTower extends Tower {
 
     private final GameMain game;
 
+    /**
+     * Cree le joueur sur la map principale.
+     * @param x position X
+     * @param y position Y
+     * @param range portee des tirs
+     * @param fireRate cadence de tir
+     * @param enemies liste d'ennemis
+     * @param projectiles liste de projectiles
+     * @param portals portails actifs
+     * @param game instance du jeu
+     */
     public PlayerTower(float x, float y, float range, float fireRate,
                        Array<Enemy> enemies,
                        Array<Projectile> projectiles,
@@ -40,6 +55,10 @@ public class PlayerTower extends Tower {
         this.currentFrame = animator.getFrame(0f, 0f, 0f);
     }
 
+    /**
+     * Deplace le joueur et declenche les portails si besoin.
+     * @param newPos nouvelle position
+     */
     public void move(Vector2 newPos) {
         clampToWorld(newPos);
         position.set(newPos);
@@ -63,6 +82,10 @@ public class PlayerTower extends Tower {
         }
     }
 
+    /**
+     * Met a jour la position, collisions et animations.
+     * @param delta temps ecoule (secondes)
+     */
     @Override
     public void update(float delta) {
         // movement now driven by inputDirection provided by GameInputController
@@ -92,15 +115,31 @@ public class PlayerTower extends Tower {
         super.update(delta);
     }
 
+    /**
+     * Definit les limites du monde pour le clamp.
+     * @param width largeur du monde
+     * @param height hauteur du monde
+     */
     public void setWorldBounds(float width, float height) {
         this.worldWidth = width;
         this.worldHeight = height;
     }
 
+    /**
+     * Fournit les rectangles de collision issus de Tiled.
+     * @param rects rectangles de collision
+     */
     public void setCollisionRects(Array<Rectangle> rects) {
         this.collisionRects = rects;
     }
 
+    /**
+     * Place le joueur dans une zone libre proche d'un point.
+     * @param x position X souhaitee
+     * @param y position Y souhaitee
+     * @param searchRadius rayon de recherche
+     * @param step pas de recherche
+     */
     public void setPositionSafe(float x, float y, float searchRadius, float step) {
         candidate.set(x, y);
         clampToWorld(candidate);
@@ -124,6 +163,10 @@ public class PlayerTower extends Tower {
         position.set(candidate);
     }
 
+    /**
+     * Rend le sprite du joueur (ou fallback tower).
+     * @param batch sprite batch actif
+     */
     @Override
     public void render(SpriteBatch batch) {
         if (currentFrame != null) {
@@ -179,7 +222,8 @@ public class PlayerTower extends Tower {
     }
 
     /**
-     * Called by the input controller to pass the current intended direction (may be unnormalized).
+     * Defini la direction d'entree fournie par le controleur.
+     * @param dir direction souhaitee
      */
     public void setInputDirection(Vector2 dir) {
         if (dir == null) {

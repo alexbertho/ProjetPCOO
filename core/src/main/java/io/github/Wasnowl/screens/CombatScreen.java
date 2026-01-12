@@ -11,6 +11,9 @@ import io.github.Wasnowl.GameMain;
 import io.github.Wasnowl.controllers.GameInputController;
 import io.github.Wasnowl.entities.PlayerCharacter;
 
+/**
+ * Ecran de combat simple utilise lors des transitions de portail.
+ */
 public class CombatScreen extends ScreenAdapter {
     private final GameMain game;
     private String combatId;
@@ -22,11 +25,19 @@ public class CombatScreen extends ScreenAdapter {
     private PlayerCharacter player;
     private GameInputController inputController;
 
+    /**
+     * Cree un ecran de combat pour un identifiant donne.
+     * @param game instance du jeu
+     * @param combatId identifiant du combat
+     */
     public CombatScreen(GameMain game, String combatId) {
         this.game = game;
         this.combatId = combatId;
     }
 
+    /**
+     * Initialise camera, joueur et input.
+     */
     @Override
     public void show() {
         batch = new SpriteBatch();
@@ -58,6 +69,10 @@ public class CombatScreen extends ScreenAdapter {
         inputController.attach();
     }
 
+    /**
+     * Met a jour le joueur et rend la scene.
+     * @param delta temps ecoule (secondes)
+     */
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0.05f, 0.05f, 0.12f, 1);
@@ -79,11 +94,19 @@ public class CombatScreen extends ScreenAdapter {
 
     }
 
+    /**
+     * Met a jour le viewport lors d'un resize.
+     * @param width largeur
+     * @param height hauteur
+     */
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height);
     }
 
+    /**
+     * Libere les ressources de l'ecran.
+     */
     @Override
     public void dispose() {
         if (inputController != null) inputController.detach();

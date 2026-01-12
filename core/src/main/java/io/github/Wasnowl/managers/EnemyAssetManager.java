@@ -7,7 +7,7 @@ import java.util.Map;
 
 /**
  * EnemyAssetManager : charge les spritesheets et découpe en frames pour les ennemis
- * Structure attendue : assets/ennemies/<id>/<animationFile.png>
+ * Structure attendue : {@code assets/ennemies/&lt;id&gt;/&lt;animationFile.png&gt;}
  * Ex: assets/ennemies/1/S_Walk.png ou assets/ennemies/1/S_Walk.png
  */
 public class EnemyAssetManager {
@@ -19,6 +19,10 @@ public class EnemyAssetManager {
 
     private EnemyAssetManager() {}
 
+    /**
+     * Retourne l'instance singleton du manager.
+     * @return instance unique
+     */
     public static EnemyAssetManager getInstance() {
         if (instance == null) instance = new EnemyAssetManager();
         return instance;
@@ -30,13 +34,21 @@ public class EnemyAssetManager {
      * @param animName nom de l'animation (ex: "walk", "death")
      * @param cols colonnes dans le spritesheet
      * @param rows lignes dans le spritesheet
-     * @param optional si true, ne pas afficher d'erreur si l'animation n'existe pas
      * @return tableau de TextureRegion ou null
      */
     public TextureRegion[] loadAnimationFromSpritesheet(int id, String animName, int cols, int rows) {
         return loadAnimationFromSpritesheet(id, animName, cols, rows, false);
     }
 
+    /**
+     * Charge et decoupe un spritesheet avec option de silence en cas d'absence.
+     * @param id id du monstre (dossier)
+     * @param animName nom de l'animation
+     * @param cols colonnes dans le spritesheet
+     * @param rows lignes dans le spritesheet
+     * @param optional si true, ne pas afficher d'erreur si l'animation n'existe pas
+     * @return tableau de TextureRegion ou null
+     */
     public TextureRegion[] loadAnimationFromSpritesheet(int id, String animName, int cols, int rows, boolean optional) {
         Map<String, TextureRegion[]> m = cache.get(id);
         if (m != null && m.containsKey(animName)) return m.get(animName);

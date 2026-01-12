@@ -19,11 +19,23 @@ public class ProjectilePool {
 
     private ProjectilePool() {}
 
+    /**
+     * Retourne l'instance singleton du pool.
+     * @return instance unique
+     */
     public static ProjectilePool getInstance() {
         if (instance == null) instance = new ProjectilePool();
         return instance;
     }
 
+    /**
+     * Recupere un projectile du pool ou en cree un nouveau.
+     * @param start position de depart
+     * @param target cible visee
+     * @param type type de projectile
+     * @param allEnemies liste d'ennemis (AOE)
+     * @return projectile reutilise ou cree
+     */
     public Projectile acquire(Vector2 start, Enemy target, ProjectileType type, Array<Enemy> allEnemies) {
         // Récupérer du pool si disponible
         if (pool.size > 0) {
@@ -40,6 +52,10 @@ public class ProjectilePool {
         }
     }
 
+    /**
+     * Remet un projectile dans le pool pour reutilisation.
+     * @param p projectile a recycler
+     */
     public void release(Projectile p) {
         if (p == null) return;
         pool.add(p);

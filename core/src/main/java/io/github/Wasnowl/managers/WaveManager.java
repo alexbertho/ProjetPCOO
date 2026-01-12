@@ -29,6 +29,11 @@ public class WaveManager {
     private int[] waveSizes = {5, 10, 15}; // nombre d'ennemis par vague
     private java.util.Map<Integer, Integer> damageByEnemyType = new java.util.HashMap<>();
 
+    /**
+     * Cree un gestionnaire de vagues avec dependances explicites.
+     * @param enemies liste d'ennemis
+     * @param currencyManager gestionnaire d'argent
+     */
     public WaveManager(Array<Enemy> enemies, CurrencyManager currencyManager) {
         this.enemies = enemies;
         this.currencyManager = currencyManager;
@@ -40,6 +45,7 @@ public class WaveManager {
 
     /**
      * Constructeur compatible MVC: utilise un GameState central
+     * @param state etat du jeu
      */
     public WaveManager(GameState state) {
         this(state.getEnemies(), state.getCurrencyManager());
@@ -47,6 +53,7 @@ public class WaveManager {
 
     /**
      * Définit une callback appelée quand l'argent change
+     * @param callback callback a appeler
      */
     public void setOnMoneyChanged(Runnable callback) {
         this.onMoneyChanged = callback;
@@ -54,6 +61,7 @@ public class WaveManager {
 
     /**
      * Définit une callback appelée quand le joueur perd des vies (amount)
+     * @param callback callback a appeler
      */
     public void setOnLifeLost(IntConsumer callback) {
         this.onLifeLost = callback;
@@ -62,6 +70,7 @@ public class WaveManager {
     /**
      * Remplace ou complète la table de dégâts par type d'ennemi.
      * Exemple: map.put(1,1); map.put(2,2); map.put(3,5);
+     * @param mapping table de degats
      */
     public void setDamageMapping(java.util.Map<Integer, Integer> mapping) {
         if (mapping == null) return;
@@ -69,6 +78,9 @@ public class WaveManager {
         this.damageByEnemyType.putAll(mapping);
     }
 
+    /**
+     * Lance la prochaine vague (ou signale la fin).
+     */
     public void startNextWave() {
         if (currentWave < waveSizes.length) {
             enemies.clear();
@@ -90,6 +102,10 @@ public class WaveManager {
         }
     }
 
+    /**
+     * Met a jour la vague courante et les ennemis.
+     * @param delta temps ecoule (secondes)
+     */
     public void update(float delta) {
         // Spawn progressif des ennemis
         if (enemiesSpawned < enemiesToSpawn) {
@@ -177,10 +193,18 @@ public class WaveManager {
         return 1;
     }
 
+    /**
+     * Indique si la vague courante est terminee.
+     * @return true si terminee
+     */
     public boolean isWaveFinished() {
         return enemies.size == 0 && enemiesSpawned == enemiesToSpawn;
     }
 
+    /**
+     * Retourne l'index de la vague courante (1-based).
+     * @return index de vague
+     */
     public int getCurrentWave() {
         return currentWave;
     }

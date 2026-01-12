@@ -18,16 +18,26 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.Wasnowl.GameMain;
 import io.github.Wasnowl.managers.MusicManager;
 
+/**
+ * Menu principal: lancement du jeu, options et sortie.
+ */
 public class MainMenuScreen extends ScreenAdapter {
     private final GameMain game;
     private Stage stage;
     private Skin skin;
     private Window optionsWindow;
 
+    /**
+     * Cree le menu principal.
+     * @param game instance du jeu
+     */
     public MainMenuScreen(GameMain game) {
         this.game = game;
     }
 
+    /**
+     * Initialise l'UI du menu.
+     */
     @Override
     public void show() {
         stage = new Stage(new ScreenViewport());
@@ -69,6 +79,10 @@ public class MainMenuScreen extends ScreenAdapter {
         });
     }
 
+    /**
+     * Rend le menu principal.
+     * @param delta temps ecoule (secondes)
+     */
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1);
@@ -77,6 +91,9 @@ public class MainMenuScreen extends ScreenAdapter {
         stage.draw();
     }
 
+    /**
+     * Libere les ressources du menu.
+     */
     @Override
     public void dispose() {
         stage.dispose();

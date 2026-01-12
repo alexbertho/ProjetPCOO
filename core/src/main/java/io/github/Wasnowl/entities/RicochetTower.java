@@ -10,12 +10,25 @@ import io.github.Wasnowl.managers.ProjectilePool;
  */
 public class RicochetTower extends Tower {
 
+    /**
+     * Cree une tour ricochet avec projectile specifique.
+     * @param x position X
+     * @param y position Y
+     * @param range portee
+     * @param fireRate cadence de tir
+     * @param enemies liste d'ennemis
+     * @param projectiles liste de projectiles
+     */
     public RicochetTower(float x, float y, float range, float fireRate,
                          Array<Enemy> enemies, Array<Projectile> projectiles) {
         super(x, y, range, fireRate, enemies, projectiles);
         this.projectileType = ProjectileType.RICOCHET;
     }
 
+    /**
+     * Tire un projectile ricochet via le pool.
+     * @param target cible visee
+     */
     @Override
     protected void shoot(Enemy target) {
         // Utiliser le ProjectilePool pour créer les projectiles ricochets

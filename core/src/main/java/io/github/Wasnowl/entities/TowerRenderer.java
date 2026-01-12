@@ -16,11 +16,15 @@ public class TowerRenderer {
     private float animationStateTime = 0;
     private boolean isAnimating = false;
     
+    /**
+     * Cree un renderer sans texture par defaut.
+     */
     public TowerRenderer() {
     }
     
     /**
      * Définit une texture statique (pas d'animation)
+     * @param texture texture statique
      */
     public void setTexture(TextureRegion texture) {
         this.staticTexture = texture;
@@ -30,6 +34,8 @@ public class TowerRenderer {
     
     /**
      * Définit une animation à partir de frames
+     * @param frames frames d'animation
+     * @param frameDuration duree d'une frame
      */
     public void setAnimation(TextureRegion[] frames, float frameDuration) {
         if (frames != null && frames.length > 0) {
@@ -42,6 +48,7 @@ public class TowerRenderer {
     
     /**
      * Met à jour l'état de l'animation
+     * @param delta temps ecoule (secondes)
      */
     public void update(float delta) {
         if (isAnimating && animation != null) {
@@ -51,6 +58,9 @@ public class TowerRenderer {
     
     /**
      * Affiche la tour (texture ou animation)
+     * @param batch sprite batch actif
+     * @param position position de rendu
+     * @param size taille de rendu
      */
     public void render(SpriteBatch batch, Vector2 position, Vector2 size) {
         TextureRegion frame;
@@ -67,18 +77,34 @@ public class TowerRenderer {
         batch.draw(frame, position.x, position.y, size.x, size.y);
     }
     
+    /**
+     * Active ou desactive l'animation.
+     * @param animating true pour animer
+     */
     public void setAnimating(boolean animating) {
         this.isAnimating = animating;
     }
     
+    /**
+     * Indique si l'animation est active.
+     * @return true si active
+     */
     public boolean isAnimating() {
         return isAnimating;
     }
     
+    /**
+     * Retourne la texture statique si definie.
+     * @return texture statique ou null
+     */
     public TextureRegion getStaticTexture() {
         return staticTexture;
     }
     
+    /**
+     * Retourne l'animation si definie.
+     * @return animation ou null
+     */
     public Animation<TextureRegion> getAnimation() {
         return animation;
     }

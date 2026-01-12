@@ -5,10 +5,15 @@ import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.Array;
 
+/**
+ * Gere la playlist musicale: chargement, lecture en boucle et volume.
+ */
 public class MusicManager {
     private static final String MUSIC_DIR = "musique";
     private static final String MUSIC_EXT = "mp3";
+    /** Volume minimum en dB. */
     public static final float MIN_VOLUME_DB = -60f;
+    /** Volume maximum en dB. */
     public static final float MAX_VOLUME_DB = 0f;
     private static final float DEFAULT_VOLUME_DB = -18f;
     private final Array<FileHandle> tracks = new Array<>();
@@ -16,6 +21,9 @@ public class MusicManager {
     private int currentIndex = -1;
     private float volume = dbToLinear(DEFAULT_VOLUME_DB);
 
+    /**
+     * Lance la lecture en parcourant les pistes du dossier musique/.
+     */
     public void start() {
         FileHandle dir = Gdx.files.internal(MUSIC_DIR);
         if (!dir.exists() || !dir.isDirectory()) {
@@ -72,10 +80,17 @@ public class MusicManager {
         current = null;
     }
 
+    /**
+     * Libere les ressources audio en cours.
+     */
     public void dispose() {
         stopCurrent();
     }
 
+    /**
+     * Definit le volume en valeur lineaire (0..1).
+     * @param volume volume lineaire
+     */
     public void setVolume(float volume) {
         float clamped = Math.max(0f, Math.min(1f, volume));
         this.volume = clamped;
@@ -84,10 +99,18 @@ public class MusicManager {
         }
     }
 
+    /**
+     * Retourne le volume lineaire (0..1).
+     * @return volume lineaire
+     */
     public float getVolume() {
         return volume;
     }
 
+    /**
+     * Definit le volume en dB (clamp min/max).
+     * @param volumeDb volume en dB
+     */
     public void setVolumeDb(float volumeDb) {
         float clampedDb = Math.max(MIN_VOLUME_DB, Math.min(MAX_VOLUME_DB, volumeDb));
         float linear = dbToLinear(clampedDb);
@@ -97,6 +120,10 @@ public class MusicManager {
         }
     }
 
+    /**
+     * Retourne le volume en dB.
+     * @return volume en dB
+     */
     public float getVolumeDb() {
         return linearToDb(volume);
     }

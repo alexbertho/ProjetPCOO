@@ -6,6 +6,9 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Array;
 
+/**
+ * Construit les animations du joueur (idle/walk) selon la direction.
+ */
 public class PlayerAnimator {
     private static final int FRAME_COLS = 4;
     private static final int FRAME_WIDTH = 48;
@@ -31,10 +34,18 @@ public class PlayerAnimator {
     private Direction lastDirection = Direction.DOWN;
     private AnimState state = AnimState.IDLE;
 
+    /**
+     * Cree un animateur avec les assets par defaut.
+     */
     public PlayerAnimator() {
         this(WALK_PATH, IDLE_PATH);
     }
 
+    /**
+     * Cree un animateur a partir des chemins de spritesheets.
+     * @param walkPath chemin du spritesheet de marche
+     * @param idlePath chemin du spritesheet idle
+     */
     public PlayerAnimator(String walkPath, String idlePath) {
         walkTexture = new Texture(Gdx.files.internal(walkPath));
         idleTexture = new Texture(Gdx.files.internal(idlePath));
@@ -59,6 +70,13 @@ public class PlayerAnimator {
         walkRight = buildAnimation(WALK_FRAME_DURATION, walkRightRow);
     }
 
+    /**
+     * Retourne la frame courante selon la vitesse et le temps.
+     * @param delta temps ecoule (secondes)
+     * @param vx vitesse en X
+     * @param vy vitesse en Y
+     * @return frame courante
+     */
     public TextureRegion getFrame(float delta, float vx, float vy) {
         stateTime += delta;
 
@@ -77,6 +95,9 @@ public class PlayerAnimator {
         return current.getKeyFrame(stateTime, true);
     }
 
+    /**
+     * Libere les textures chargees.
+     */
     public void dispose() {
         walkTexture.dispose();
         idleTexture.dispose();

@@ -5,6 +5,10 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import io.github.Wasnowl.GameObject;
 
+/**
+ * Personnage jouable du mode combat.
+ * Le mouvement est pilote par GameInputController.
+ */
 public class PlayerCharacter extends GameObject {
     private final Vector2 velocity = new Vector2();
     private final float speed = 180f;
@@ -12,6 +16,11 @@ public class PlayerCharacter extends GameObject {
     private TextureRegion currentFrame;
     private final Vector2 inputDirection = new Vector2();
 
+    /**
+     * Cree un personnage jouable a la position initiale.
+     * @param x position X
+     * @param y position Y
+     */
     public PlayerCharacter(float x, float y) {
         super(x, y);
         this.size.set(32, 64);
@@ -19,6 +28,10 @@ public class PlayerCharacter extends GameObject {
         currentFrame = animator.getFrame(0f, 0f, 0f);
     }
 
+    /**
+     * Met a jour la position et l'animation selon l'entree.
+     * @param delta temps ecoule (secondes)
+     */
     @Override
     public void update(float delta) {
         // Movement driven by inputDirection set by GameInputController
@@ -33,6 +46,10 @@ public class PlayerCharacter extends GameObject {
         currentFrame = animator.getFrame(delta, velocity.x, velocity.y);
     }
 
+    /**
+     * Rend le sprite courant du joueur.
+     * @param batch sprite batch actif
+     */
     @Override
     public void render(SpriteBatch batch) {
         if (currentFrame != null) {
@@ -40,6 +57,10 @@ public class PlayerCharacter extends GameObject {
         }
     }
 
+    /**
+     * Definit la direction d'entree normalisee (ou nulle).
+     * @param dir direction souhaitee
+     */
     public void setInputDirection(Vector2 dir) {
         if (dir == null) inputDirection.set(0f, 0f);
         else inputDirection.set(dir);

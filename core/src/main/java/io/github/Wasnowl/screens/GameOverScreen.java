@@ -22,10 +22,17 @@ public class GameOverScreen extends ScreenAdapter {
     private Stage uiStage;
     private Skin uiSkin;
 
+    /**
+     * Cree l'ecran de fin de partie.
+     * @param game instance du jeu
+     */
     public GameOverScreen(GameMain game) {
         this.game = game;
     }
 
+    /**
+     * Initialise l'UI de fin de partie.
+     */
     @Override
     public void show() {
         uiSkin = new Skin(Gdx.files.internal("uiskin.json"));
@@ -65,6 +72,10 @@ public class GameOverScreen extends ScreenAdapter {
         Gdx.input.setInputProcessor(uiStage);
     }
 
+    /**
+     * Rend l'ecran de fin de partie.
+     * @param delta temps ecoule (secondes)
+     */
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0, 0, 0, 1);
@@ -75,11 +86,19 @@ public class GameOverScreen extends ScreenAdapter {
         }
     }
 
+    /**
+     * Met a jour le viewport lors d'un resize.
+     * @param width largeur
+     * @param height hauteur
+     */
     @Override
     public void resize(int width, int height) {
         if (uiStage != null) uiStage.getViewport().update(width, height, true);
     }
 
+    /**
+     * Libere les ressources de l'ecran.
+     */
     @Override
     public void dispose() {
         if (uiStage != null) uiStage.dispose();

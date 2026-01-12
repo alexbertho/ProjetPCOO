@@ -10,11 +10,64 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
  * Fournit des callbacks simples que la View (GameScreen) peut implémenter.
  */
 public class GameInputController {
-    public interface MoveHandler { void onMove(com.badlogic.gdx.math.Vector2 direction); }
-    public interface CameraMoveHandler { void onMove(com.badlogic.gdx.math.Vector2 direction, float delta); }
-    public interface TouchDownHandler { boolean touchDown(int screenX, int screenY, int pointer, int button); }
-    public interface KeyDownHandler { boolean keyDown(int keycode); }
-    public interface ScrollHandler { boolean scrolled(float amountX, float amountY); }
+    /**
+     * Callback pour le mouvement du joueur (direction normalisee).
+     */
+    public interface MoveHandler {
+        /**
+         * Notifie un changement de direction du joueur.
+         * @param direction direction souhaitee (non normalisee possible)
+         */
+        void onMove(com.badlogic.gdx.math.Vector2 direction);
+    }
+    /**
+     * Callback pour le mouvement de la camera (direction + delta).
+     */
+    public interface CameraMoveHandler {
+        /**
+         * Notifie un changement de direction de la camera.
+         * @param direction direction souhaitee
+         * @param delta temps ecoule (secondes)
+         */
+        void onMove(com.badlogic.gdx.math.Vector2 direction, float delta);
+    }
+    /**
+     * Callback pour les clics/touches ecran.
+     */
+    public interface TouchDownHandler {
+        /**
+         * Notifie un clic/tap.
+         * @param screenX position X ecran
+         * @param screenY position Y ecran
+         * @param pointer index du pointeur
+         * @param button bouton presse
+         * @return true si l'event est consomme
+         */
+        boolean touchDown(int screenX, int screenY, int pointer, int button);
+    }
+    /**
+     * Callback pour les touches ponctuelles (ex: ESC).
+     */
+    public interface KeyDownHandler {
+        /**
+         * Notifie l'appui sur une touche.
+         * @param keycode code de la touche
+         * @return true si l'event est consomme
+         */
+        boolean keyDown(int keycode);
+    }
+    /**
+     * Callback pour la molette (zoom).
+     */
+    public interface ScrollHandler {
+        /**
+         * Notifie un scroll de souris.
+         * @param amountX scroll horizontal
+         * @param amountY scroll vertical
+         * @return true si l'event est consomme
+         */
+        boolean scrolled(float amountX, float amountY);
+    }
 
     private final Stage uiStage;
     private final java.util.function.BooleanSupplier isPaused;
@@ -54,6 +107,16 @@ public class GameInputController {
         }
     };
 
+    /**
+     * Construit un controleur d'entree avec callbacks (vue/controller).
+     * @param uiStage stage UI a brancher
+     * @param isPaused fournisseur d'etat pause
+     * @param moveHandler callback de mouvement joueur
+     * @param touchHandler callback de clic
+     * @param keyHandler callback clavier
+     * @param scrollHandler callback molette
+     * @param cameraMoveHandler callback de mouvement camera
+     */
     public GameInputController(Stage uiStage,
                                java.util.function.BooleanSupplier isPaused,
                                MoveHandler moveHandler,
@@ -88,7 +151,8 @@ public class GameInputController {
     }
 
     /**
-     * Doit être appelé chaque frame par le contrôleur pour traiter les touches continues (WASD / flèches).
+     * Doit etre appele chaque frame pour traiter les touches continues.
+     * @param delta temps ecoule (secondes)
      */
     public void update(float delta) {
         if (isPaused != null && isPaused.getAsBoolean()) {

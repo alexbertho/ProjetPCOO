@@ -13,12 +13,22 @@ public class EnemyMovement {
     private float speed;
     private boolean isMoving = true;
 
+    /**
+     * Cree le composant de mouvement pour un chemin donne.
+     * @param startPos position de depart
+     * @param path chemin a suivre
+     * @param speed vitesse de deplacement
+     */
     public EnemyMovement(Vector2 startPos, Vector2[] path, float speed) {
         this.position = startPos.cpy();
         this.path = path;
         this.speed = speed;
     }
 
+    /**
+     * Met a jour la position vers le point courant du chemin.
+     * @param delta temps ecoule (secondes)
+     */
     public void update(float delta) {
         if (!isMoving || currentPoint >= path.length) return;
 
@@ -45,18 +55,34 @@ public class EnemyMovement {
         isMoving = false;
     }
 
+    /**
+     * Retourne la position courante.
+     * @return position courante
+     */
     public Vector2 getPosition() {
         return position;
     }
 
+    /**
+     * Definit la position courante.
+     * @param pos nouvelle position
+     */
     public void setPosition(Vector2 pos) {
         this.position = pos.cpy();
     }
 
+    /**
+     * Indique si le chemin est termine.
+     * @return true si termine
+     */
     public boolean hasReachedEnd() {
         return currentPoint >= path.length;
     }
 
+    /**
+     * Indique si le mouvement est actif.
+     * @return true si actif
+     */
     public boolean isMoving() {
         return isMoving;
     }
