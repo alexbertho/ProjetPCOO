@@ -25,6 +25,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
@@ -35,8 +36,6 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
-import com.badlogic.gdx.InputAdapter;
-import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import io.github.Wasnowl.managers.MusicManager;
 
@@ -46,6 +45,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import io.github.Wasnowl.GameMain;
 import io.github.Wasnowl.entities.*;
 import io.github.Wasnowl.managers.WaveManager;
+import io.github.Wasnowl.controllers.GameInputController;
 import io.github.Wasnowl.managers.ProjectileManager;
 import io.github.Wasnowl.builders.TowerBuilder;
 import io.github.Wasnowl.managers.CurrencyManager;
@@ -55,6 +55,8 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
+import io.github.Wasnowl.controllers.GameController;
+import io.github.Wasnowl.model.GameState;
 
 public class GameScreen extends ScreenAdapter {
     private final GameMain game;
@@ -123,7 +125,6 @@ public class GameScreen extends ScreenAdapter {
     private TowerType previewTowerType = null;
     private Vector2 previewPosition = new Vector2();
     private ShapeRenderer shapeRenderer;
-    private com.badlogic.gdx.InputMultiplexer inputMultiplexer;
     private BitmapFont hudFont;
     private Label balanceLabel;
     private Label costLabel;
@@ -144,8 +145,11 @@ public class GameScreen extends ScreenAdapter {
     private Array<Projectile> projectiles;
     private ProjectileManager projectileManager;
     private CurrencyManager currencyManager;
+    private GameState gameState;
 
     private WaveManager waveManager;
+    private GameInputController inputController;
+    private GameController gameController;
 
 
     public GameScreen(GameMain game) {
@@ -168,7 +172,24 @@ public class GameScreen extends ScreenAdapter {
         towers = new Array<>();
         enemies = new Array<>();
         projectiles = new Array<>();
-        projectileManager = new ProjectileManager(projectiles);
+
+        // GameState (central model)
+        gameState = new GameState();
+        gameState.setCurrencyManager(new CurrencyManager(50));
+        gameState.setPlayerHealth(playerHealth);
+        gameState.setPlayerMaxHealth(playerMaxHealth);
+        gameState.getTowers().clear();
+        gameState.getEnemies().clear();
+        gameState.getProjectiles().clear();
+
+        // assign arrays to our references and GameState
+        this.towers = gameState.getTowers();
+        this.enemies = gameState.getEnemies();
+        this.projectiles = gameState.getProjectiles();
+
+        // ProjectileManager backed by GameState
+        projectileManager = new ProjectileManager(gameState);
+        currencyManager = gameState.getCurrencyManager();
 
         Array<Portal> portals = new Array<>();
         // Exemple : portal large sur la bordure inférieure (y proche de 0)
@@ -177,9 +198,11 @@ public class GameScreen extends ScreenAdapter {
         portals.add(new Portal(new Rectangle(750, 550, 50, 50), "maps/NextLevel.tmx", Portal.Type.MAP));
 
         player = new PlayerTower(100, 100, 150, 1f, enemies, projectiles, portals, game);
-        // Currency manager
-        currencyManager = new CurrencyManager(50); // monnaie de départ
-        waveManager = new WaveManager(enemies, currencyManager);
+        gameState.setPlayer(player);
+        // WaveManager now can use GameState
+        waveManager = new WaveManager(gameState);
+        // Controller: orchestre les updates du modèle (séparation MVC)
+        gameController = new GameController(waveManager, projectileManager, player, towers, enemies, projectiles);
 
         // ShapeRenderer for preview
         shapeRenderer = new ShapeRenderer();
@@ -322,17 +345,19 @@ public class GameScreen extends ScreenAdapter {
         bottomRightTable.add(nextWaveButton).pad(8);
         uiStage.addActor(bottomRightTable);
 
-        inputMultiplexer = new com.badlogic.gdx.InputMultiplexer();
-        inputMultiplexer.addProcessor(uiStage);
-        inputMultiplexer.addProcessor(new InputAdapter() {
-            @Override
-            public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-                if (paused) {
-                    return false;
-                }
-                // Left click placement
-                if (placingPreview && button == com.badlogic.gdx.Input.Buttons.LEFT) {
-                    Vector3 tmp = new Vector3(screenX, screenY, 0);
+        // Setup input controller (delegue la gestion des entrées)
+        inputController = new GameInputController(
+            uiStage,
+            () -> paused,
+            // MoveHandler: transmet la direction continue de l'utilisateur
+            (com.badlogic.gdx.math.Vector2 dir) -> {
+                // dir est un Vector2 indicatif, normaliser si nécessaire
+                if (player != null) player.setInputDirection(dir);
+            },
+            (int screenX, int screenY, int pointer, int button) -> {
+                  // Left click placement
+                  if (placingPreview && button == com.badlogic.gdx.Input.Buttons.LEFT) {
+                    Vector3 tmp = new Vector3((float)screenX, (float)screenY, 0f);
                     viewport.unproject(tmp);
                     float wx = tmp.x;
                     float wy = tmp.y;
@@ -360,29 +385,21 @@ public class GameScreen extends ScreenAdapter {
                     return true;
                 }
                 return false;
-            }
-
-            @Override
-            public boolean keyDown(int keycode) {
+            },
+            (int keycode) -> {
                 if (keycode == com.badlogic.gdx.Input.Keys.ESCAPE) {
                     togglePause();
                     return true;
                 }
                 return false;
-            }
-
-            @Override
-            public boolean scrolled(float amountX, float amountY) {
-                if (paused) {
-                    return false;
-                }
+            },
+            (float amountX, float amountY) -> {
                 float nextZoom = camera.zoom + amountY * CAMERA_ZOOM_STEP;
                 camera.zoom = MathUtils.clamp(nextZoom, CAMERA_MIN_ZOOM, CAMERA_MAX_ZOOM);
                 return true;
             }
-        });
-
-        Gdx.input.setInputProcessor(inputMultiplexer);
+        );
+        inputController.attach();
 
         // Callback pour mettre à jour l'UI quand l'argent change
         waveManager.setOnMoneyChanged(() -> {
@@ -416,18 +433,17 @@ public class GameScreen extends ScreenAdapter {
         renderMapObjectLayer(batch);
 
         if (!paused) {
-            // Update
-            if (waveManager != null) {
-                waveManager.update(delta);
-                // Activer/désactiver le bouton Next Wave selon l'état de la vague
-                if (nextWaveButton != null) {
-                    nextWaveButton.setDisabled(!waveManager.isWaveFinished());
-                }
-            }
-            player.update(delta);
-            for (Tower t : towers) t.update(delta);
-            projectileManager.update(delta);  // Utiliser le ProjectileManager
-        }
+            // Update input controller first (continuous input like movement)
+            if (inputController != null) inputController.update(delta);
+             // Update via GameController (sépare la logique d'update de la vue)
+             if (gameController != null) {
+                 gameController.update(delta);
+                 // Activer/désactiver le bouton Next Wave selon l'état de la vague
+                 if (nextWaveButton != null && waveManager != null) {
+                     nextWaveButton.setDisabled(!waveManager.isWaveFinished());
+                 }
+             }
+         }
 
         // Render
         batch.setProjectionMatrix(camera.combined);
@@ -499,6 +515,8 @@ public class GameScreen extends ScreenAdapter {
         if (hudFont != null) hudFont.dispose();
         if (backgroundBuffer != null) backgroundBuffer.dispose();
         if (blurShader != null) blurShader.dispose();
+        // Detach input controller
+        if (inputController != null) inputController.detach();
     }
 
     private void toggleTowerMenu() {
@@ -939,12 +957,13 @@ public class GameScreen extends ScreenAdapter {
     // Méthode pour mettre à jour la vie du joueur (à appeler lors de dégâts)
     private void setPlayerHealth(float value) {
         this.playerHealth = Math.max(0, Math.min(playerMaxHealth, value));
-        // Si la vie atteint 0, passer à l'écran Game Over
-        if (this.playerHealth <= 0f) {
-            // nettoyer les ressources de l'écran actuel si besoin
-            // basculer d'écran (utilise la référence game)
-            game.setScreen(new GameOverScreen(game));
-        }
+        if (gameState != null) gameState.setPlayerHealth(this.playerHealth);
+         // Si la vie atteint 0, passer à l'écran Game Over
+         if (this.playerHealth <= 0f) {
+             // nettoyer les ressources de l'écran actuel si besoin
+             // basculer d'écran (utilise la référence game)
+             game.setScreen(new GameOverScreen(game));
+         }
     }
 
     private void setGameplayUiVisible(boolean visible) {

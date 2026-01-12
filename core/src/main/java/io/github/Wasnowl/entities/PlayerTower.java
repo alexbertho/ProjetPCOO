@@ -1,6 +1,5 @@
 package io.github.Wasnowl.entities;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Rectangle;
@@ -15,17 +14,18 @@ public class PlayerTower extends Tower {
     private static final float MOVE_SPEED = 180f;
     private static final float HITBOX_WIDTH = 16f;
     private static final float HITBOX_HEIGHT = 16f;
-    private Array<Portal> portals;
+    private final Array<Portal> portals;
     private final Vector2 velocity = new Vector2();
+    private final Vector2 inputDirection = new Vector2();
     private final Vector2 candidate = new Vector2();
     private final Rectangle hitbox = new Rectangle();
-    private PlayerAnimator animator;
+    private final PlayerAnimator animator;
     private TextureRegion currentFrame;
     private float worldWidth = -1f;
     private float worldHeight = -1f;
     private Array<Rectangle> collisionRects;
 
-    private GameMain game;
+    private final GameMain game;
 
     public PlayerTower(float x, float y, float range, float fireRate,
                        Array<Enemy> enemies,
@@ -65,28 +65,8 @@ public class PlayerTower extends Tower {
 
     @Override
     public void update(float delta) {
-        float moveX = 0f;
-        float moveY = 0f;
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.LEFT)
-                || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.Q)
-                || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.A)) {
-            moveX -= 1f;
-        }
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.RIGHT)
-                || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.D)) {
-            moveX += 1f;
-        }
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.UP)
-                || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.Z)
-                || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.W)) {
-            moveY += 1f;
-        }
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.DOWN)
-                || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.S)) {
-            moveY -= 1f;
-        }
-
-        velocity.set(moveX, moveY);
+        // movement now driven by inputDirection provided by GameInputController
+        velocity.set(inputDirection);
         if (velocity.len2() > 0f) {
             velocity.nor().scl(MOVE_SPEED);
         }
@@ -196,5 +176,16 @@ public class PlayerTower extends Tower {
         float hitX = x + (spriteWidth - hitWidth) * 0.5f;
         float hitY = y;
         hitbox.set(hitX, hitY, hitWidth, hitHeight);
+    }
+
+    /**
+     * Called by the input controller to pass the current intended direction (may be unnormalized).
+     */
+    public void setInputDirection(Vector2 dir) {
+        if (dir == null) {
+            inputDirection.set(0f, 0f);
+        } else {
+            inputDirection.set(dir);
+        }
     }
 }

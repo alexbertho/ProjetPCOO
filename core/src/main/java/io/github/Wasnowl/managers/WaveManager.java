@@ -8,25 +8,25 @@ import java.util.ArrayList;
 import io.github.Wasnowl.entities.Enemy;
 import io.github.Wasnowl.strategies.PathStrategyFactory;
 import java.util.function.IntConsumer;
+import io.github.Wasnowl.model.GameState;
 
 /**
  * WaveManager: gère le spawn des vagues. Pour la première vague on spawn 3 de chaque ennemi 1..4
  */
 public class WaveManager {
     private int currentWave = 0;
-    private Array<Enemy> enemies;
+    private final Array<Enemy> enemies;
     private float spawnTimer = 0f;
-    private float timeBetweenSpawns = 1.5f; // délai entre chaque ennemi
+    private final float timeBetweenSpawns = 1.5f; // délai entre chaque ennemi
     private int enemiesToSpawn = 0;
     private int enemiesSpawned = 0;
-    private List<Integer> spawnQueue = new ArrayList<>();
-    private CurrencyManager currencyManager;
+    private final List<Integer> spawnQueue = new ArrayList<>();
+    private final CurrencyManager currencyManager;
     private Runnable onMoneyChanged; // Callback pour mettre à jour l'UI
     private IntConsumer onLifeLost; // Callback pour notifier une perte de vie (int amount)
 
     // Configuration des vagues (exemple simple)
     private int[] waveSizes = {5, 10, 15}; // nombre d'ennemis par vague
-    private java.util.Map<String, com.badlogic.gdx.math.Vector2[]> mapPaths; // paths venant de la map Tiled
     private java.util.Map<Integer, Integer> damageByEnemyType = new java.util.HashMap<>();
 
     public WaveManager(Array<Enemy> enemies, CurrencyManager currencyManager) {
@@ -36,6 +36,13 @@ public class WaveManager {
         for (int i = 1; i <= 4; i++) {
             damageByEnemyType.put(i, i);
         }
+    }
+
+    /**
+     * Constructeur compatible MVC: utilise un GameState central
+     */
+    public WaveManager(GameState state) {
+        this(state.getEnemies(), state.getCurrencyManager());
     }
 
     /**

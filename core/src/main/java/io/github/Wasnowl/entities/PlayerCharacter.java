@@ -1,16 +1,16 @@
 package io.github.Wasnowl.entities;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import io.github.Wasnowl.GameObject;
 
 public class PlayerCharacter extends GameObject {
-    private Vector2 velocity = new Vector2();
-    private float speed = 180f;
-    private PlayerAnimator animator;
+    private final Vector2 velocity = new Vector2();
+    private final float speed = 180f;
+    private final PlayerAnimator animator;
     private TextureRegion currentFrame;
+    private final Vector2 inputDirection = new Vector2();
 
     public PlayerCharacter(float x, float y) {
         super(x, y);
@@ -21,28 +21,8 @@ public class PlayerCharacter extends GameObject {
 
     @Override
     public void update(float delta) {
-        float moveX = 0f;
-        float moveY = 0f;
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.LEFT)
-                || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.Q)
-                || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.A)) {
-            moveX -= 1f;
-        }
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.RIGHT)
-                || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.D)) {
-            moveX += 1f;
-        }
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.UP)
-                || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.Z)
-                || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.W)) {
-            moveY += 1f;
-        }
-        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.DOWN)
-                || Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.S)) {
-            moveY -= 1f;
-        }
-
-        velocity.set(moveX, moveY);
+        // Movement driven by inputDirection set by GameInputController
+        velocity.set(inputDirection);
         if (velocity.len2() > 0f) {
             velocity.nor().scl(speed);
         }
@@ -58,5 +38,10 @@ public class PlayerCharacter extends GameObject {
         if (currentFrame != null) {
             batch.draw(currentFrame, position.x, position.y);
         }
+    }
+
+    public void setInputDirection(Vector2 dir) {
+        if (dir == null) inputDirection.set(0f, 0f);
+        else inputDirection.set(dir);
     }
 }
